@@ -1,0 +1,57 @@
+{
+  "apiVersion": "admission.k8s.io/v1",
+  "kind": "AdmissionReview",
+  "request": {
+    "dryRun": false,
+    "kind": {
+      "kind": "Eviction",
+      "group": "policy",
+      "version": "v1beta1"
+    },
+    "name": "my-cluster-kafka-2",
+    "namespace": "myproject",
+    "object": {
+      "apiVersion": "policy/v1beta1",
+      "kind": "Eviction",
+      "metadata": {
+        "name": "my-cluster-kafka-2",
+        "namespace": "myproject"
+      }
+    },
+    "operation": "CREATE",
+    "options": {
+      "apiVersion": "meta.k8s.io/v1",
+      "kind": "CreateOptions"
+    },
+    "requestKind": {
+      "kind": "Eviction",
+      "group": "policy",
+      "version": "v1beta1"
+    },
+    "requestResource": {
+      "group": "",
+      "resource": "pods",
+      "version": "v1"
+    },
+    "requestSubResource": "eviction",
+    "resource": {
+      "group": "",
+      "resource": "pods",
+      "version": "v1"
+    },
+    "subResource": "eviction",
+    "uid": "d16c745a-b275-4ab9-b418-d526f65f812b",
+    "userInfo": {
+      "extra": {
+        "scopes.authorization.openshift.io": [
+          "user:full"
+        ]
+      },
+      "groups": [
+        "system:cluster-admins",
+        "system:authenticated"
+      ],
+      "username": "kube:admin"
+    }
+  }
+}
