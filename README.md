@@ -3,12 +3,12 @@
 
 # Strimzi Drain Cleaner
 
-Strimzi Drain Cleaner is utility which helps with moving the Kafka pods deployed by [Strimzi](https://strimzi.io/) from nodes which are being drained.
+Strimzi Drain Cleaner is an utility which helps with moving the Kafka pods deployed by [Strimzi](https://strimzi.io/) from Kubernetes nodes which are being drained.
 It is useful if you want the Strimzi operator to move the pods instead of Kubernetes itself.
 The advantage of this approach is that the Strimzi operator makes sure that no pods become under-replicated during the node draining.
 To use it:
 
-* Deploy Kafka using Strimzi and configure the `PodDisruptionBudgets` for Kafka and Zookeeper to have `maxUnavailable` set to `0`.
+* Deploy Kafka using Strimzi and configure the `PodDisruptionBudgets` for Kafka and ZooKeeper to have `maxUnavailable` set to `0`.
 This will block Kubernetes from moving the pods on their own.
   
 ```yaml
@@ -57,11 +57,11 @@ spec:
 ```
 
 * Deploy the Strimzi Drain Cleaner
-* Drain the node with some Kafka or Zookeeper pods using the `kubectl drain` command
+* Drain the node with some Kafka or ZooKeeper pods using the [`kubectl drain` command](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/)
 
 ## How does it work?
 
-Strimzi Drain Cleaner using Kubernetes Admission Control features and Validating Web-hooks to find out when something tries to evict the Kafka or Zookeeper pods are.
+Strimzi Drain Cleaner uses Kubernetes Admission Control features and Validating Web-hooks to find out when something tries to evict the Kafka or ZooKeeper pods.
 It annotates them with the `strimzi.io/manual-rolling-update` annotation which will tell Strimzi Cluster Operator that this pod needs to be restarted.
 Strimzi will roll it in the next reconciliation using its algorithms which make sure the cluster is available.
 **This is supported from Strimzi 0.21.0.**
@@ -96,8 +96,8 @@ Follow the instructions in `./deploy/kubernetes` directory.
 ## See it in action
 
 You can easily test how it works:
-* Install Strimzi or AMQ Streams in your cluster
-* Deploy Kafka cluster with Pod Disruption Budget configuration having `masUnavailable` set to `0` as shown in the example above
+* Install Strimzi on your cluster
+* Deploy Kafka cluster with Pod Disruption Budget configuration having `maxUnavailable` set to `0` as shown in the example above
 * Install the Drain Cleaner
 * Drain one of the Kubernetes nodes with one of the Kafka or ZooKeeper pods
     ```
