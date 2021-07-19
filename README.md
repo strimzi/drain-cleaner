@@ -116,19 +116,19 @@ This project uses [Quarkus, the Supersonic Subatomic Java Framework](https://qua
 
 You can run your application in dev mode that enables live coding using:
 ```shell script
-./mvnw compile quarkus:dev
+mvn compile quarkus:dev
 ```
 
 ### Creating a native executable
 
 You can create a native executable using: 
 ```shell script
-./mvnw package -Pnative
+mvn package -Pnative
 ```
 
 Or you can run the native executable build for Linux in a container using: 
 ```shell script
-./mvnw package -Pnative -Dquarkus.native.container-build=true
+mvn package -Pnative -Dquarkus.native.container-build=true
 ```
 
 You can then execute your native executable with: `./target/strimzi-cistic-odpadu-1.0.0-SNAPSHOT-runner`.
@@ -161,7 +161,7 @@ You can also test it manually by evicting pods or by posting admission reviews.
 
 ### Posting admission review requests
 
-* Run Drain Cleaner locally (`./mvnw compile quarkus:dev`)
+* Run Drain Cleaner locally (`mvn compile quarkus:dev`)
 * Use `curl` to post the Admission Review Request manually:
   ```
   curl -v -H 'Content-type: application/json' http://localhost:8080/drainer -d @src/test/resources/example-admission-review.json
