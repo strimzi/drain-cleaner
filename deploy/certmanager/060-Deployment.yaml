@@ -33,6 +33,18 @@ spec:
             - name: webhook-certificates
               mountPath: "/etc/webhook-certificates"
               readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
       volumes:
         - name: webhook-certificates
           secret:
