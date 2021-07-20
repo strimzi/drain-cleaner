@@ -21,7 +21,7 @@ webhooks:
         path: /drainer
         port: 443
       caBundle: Cg==
-    admissionReviewVersions: ["v1", "v1beta1"]
+    admissionReviewVersions: ["v1"]
     sideEffects: None
     failurePolicy: Ignore
     timeoutSeconds: 5
