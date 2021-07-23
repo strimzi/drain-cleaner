@@ -1,4 +1,4 @@
-package cz.scholz;
+package io.strimzi;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
