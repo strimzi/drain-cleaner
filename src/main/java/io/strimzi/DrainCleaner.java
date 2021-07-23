@@ -1,4 +1,4 @@
-package cz.scholz;
+package io.strimzi;
 
 import io.quarkus.runtime.Quarkus;
 import org.slf4j.Logger;
