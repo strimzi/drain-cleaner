@@ -131,7 +131,7 @@ Or you can run the native executable build for Linux in a container using:
 mvn package -Pnative -Dquarkus.native.container-build=true
 ```
 
-You can then execute your native executable with: `./target/strimzi-cistic-odpadu-1.0.0-SNAPSHOT-runner`.
+You can then execute your native executable with: `./target/strimzi-drain-cleaner-1.0.0-SNAPSHOT-runner`.
 
 ### Building a container image
 
