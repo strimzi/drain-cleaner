@@ -18,13 +18,15 @@ spec:
       serviceAccountName: strimzi-drain-cleaner
       containers:
         - name: strimzi-drain-cleaner
-          image: quay.io/scholzj/strimzi-cistic-odpadu:latest
+          image: quay.io/strimzi/drain-cleaner:latest
           ports:
             - containerPort: 8080
               name: http
             - containerPort: 8443
               name: https
-          args:
+          command:
+            - "/application"
+            - "-Dquarkus.http.host=0.0.0.0"
             - "--kafka"
             - "--zookeeper"
           volumeMounts:
