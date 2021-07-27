@@ -1,0 +1,1 @@
+These install files are for the last stable Drain Cleaner release. They should be updated only when a new Drain Cleaner version is released, not as a part of regular PR. The editable files for the next release can be found in the [`packaging`](../packaging/) directory.
