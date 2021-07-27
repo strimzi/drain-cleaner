@@ -75,25 +75,25 @@ If you want to use this only to Kafka and not to ZooKeeper, you can edit the Dep
 ### On OpenShift
 
 On OpenShift, you can have the certificates needed for the web-hook generated automatically and injected into the pod / web-hook configuration.
-To install the Drain Cleaner on OpenShift, use the `./deploy/openshift` directory:
+To install the Drain Cleaner on OpenShift, use the `./install/openshift` directory:
 
 ```
-kubectl apply -f ./deploy/openshift
+kubectl apply -f ./install/openshift
 ```
 
 ### On Kubernetes with CertManager
 
 On Kubernetes, when you use Cert Manager, you can have the certificates needed for the web-hook generated automatically and injected into the pod / web-hook configuration.
-To install the Drain Cleaner on Kubernetes with installed CertManager, use the `./deploy/certmanager` directory:
+To install the Drain Cleaner on Kubernetes with installed CertManager, use the `./install/certmanager` directory:
 
 ```
-kubectl apply -f ./deploy/certmanager
+kubectl apply -f ./install/certmanager
 ```
 
 ### On Kubernetes without CertManager
 
 On Kubernetes, when you do not use Cert Manager, the certificates needed for the web-hook need to be generated manually.
-Follow the instructions in `./deploy/kubernetes` directory.
+Follow the instructions in `./install/kubernetes` directory.
 
 ## See it in action
 
