@@ -6,7 +6,7 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReviewBuilder;
-import io.fabric8.kubernetes.api.model.policy.EvictionBuilder;
+import io.fabric8.kubernetes.api.model.policy.v1beta1.EvictionBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -60,7 +60,7 @@ public class DrainCleanerTest {
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
-        verify(podResource, times(1)).patch(any());
+        verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
     }
 
@@ -77,7 +77,7 @@ public class DrainCleanerTest {
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, never()).get();
-        verify(podResource, never()).patch(any());
+        verify(podResource, never()).patch((Pod) any());
     }
 
     @Test
@@ -89,7 +89,7 @@ public class DrainCleanerTest {
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, never()).get();
-        verify(podResource, never()).patch(any());
+        verify(podResource, never()).patch((Pod) any());
     }
 
     @Test
@@ -105,7 +105,7 @@ public class DrainCleanerTest {
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
-        verify(podResource, never()).patch(any());
+        verify(podResource, never()).patch((Pod) any());
     }
 
     @Test
@@ -119,7 +119,7 @@ public class DrainCleanerTest {
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
-        verify(podResource, never()).patch(any());
+        verify(podResource, never()).patch((Pod) any());
     }
 
     @Test
@@ -135,7 +135,7 @@ public class DrainCleanerTest {
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
-        verify(podResource, never()).patch(any());
+        verify(podResource, never()).patch((Pod) any());
     }
 
     private Pod mockedPod(String podName, boolean kindLabel, boolean ruAnno) {

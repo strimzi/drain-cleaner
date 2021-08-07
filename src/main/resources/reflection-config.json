@@ -1,6 +1,6 @@
 [
   {
-    "name" : "io.fabric8.kubernetes.api.model.policy.Eviction",
+    "name" : "io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction",
     "allDeclaredConstructors" : true,
     "allPublicConstructors" : true,
     "allDeclaredMethods" : true,
