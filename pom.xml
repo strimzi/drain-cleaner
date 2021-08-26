@@ -120,9 +120,9 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${surefire-plugin.version}</version>
         <configuration>
-<!--          <excludes>-->
-<!--            <exclude>**/*ST.java</exclude>-->
-<!--          </excludes>-->
+          <excludes>
+            <exclude>**/*ST.java</exclude>
+          </excludes>
           <systemPropertyVariables>
             <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
             <maven.home>${maven.home}</maven.home>
@@ -153,12 +153,9 @@
                   <goal>verify</goal>
                 </goals>
                 <configuration>
-                  <includes>
-                    <include>**/*ST.java</include>
-                  </includes>
-<!--                  <excludes>-->
-<!--                    <exclude>**/*ST.java</exclude>-->
-<!--                  </excludes>-->
+                  <excludes>
+                    <exclude>**/*ST.java</exclude>
+                  </excludes>
                   <systemPropertyVariables>
                     <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                     <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
