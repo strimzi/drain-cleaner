@@ -6,8 +6,8 @@ package io.strimzi.utils.k8s.cmdClient;
 
 import io.strimzi.utils.executor.Exec;
 import io.strimzi.utils.executor.ExecResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.nio.file.NoSuchFileException;
@@ -20,9 +20,9 @@ import java.util.Map;
 
 import static java.util.Arrays.asList;
 
-public abstract class BaseCmdKubeClient<K extends BaseCmdKubeClient<K>> implements io.strimzi.utils.k8s.cmdClient.KubeCmdClient<K> {
+public abstract class BaseCmdKubeClient<K extends BaseCmdKubeClient<K>> implements KubeCmdClient<K> {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BaseCmdKubeClient.class);
+    private static final Logger LOGGER = LogManager.getLogger(BaseCmdKubeClient.class);
 
     private static final String APPLY = "apply";
     private static final String DELETE = "delete";

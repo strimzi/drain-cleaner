@@ -1,26 +1,28 @@
+/*
+ * Copyright Strimzi authors.
+ * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
+ */ 
 package io.strimzi.test.systemtest;
 
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
-import io.quarkus.test.junit.QuarkusTest;
 import io.strimzi.utils.StUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 
-@QuarkusTest
 public class DrainCleanerST extends AbstractST {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(DrainCleanerST.class);
+    private static final Logger LOGGER = LogManager.getLogger(DrainCleanerST.class);
 
     @Test
     void testEvictionRequestOnKafkaPod() {

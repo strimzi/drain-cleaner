@@ -19,9 +19,6 @@ public interface KubeCmdClient<K extends KubeCmdClient<K>> {
 
     KubeCmdClient<K> namespace(String namespace);
 
-    /** Returns namespace for cluster */
-    String namespace();
-
     /** Creates the resources in the given files. */
     K apply(File... files);
 

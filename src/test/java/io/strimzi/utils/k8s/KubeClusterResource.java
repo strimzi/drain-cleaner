@@ -5,10 +5,9 @@
 package io.strimzi.utils.k8s;
 
 import io.strimzi.utils.k8s.cluster.KubeCluster;
-import io.strimzi.utils.k8s.cluster.OpenShift;
 import io.strimzi.utils.k8s.cmdClient.KubeCmdClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * A Junit resource which discovers the running cluster and provides an appropriate KubeClient for it,
@@ -25,7 +24,7 @@ import org.slf4j.LoggerFactory;
  */
 public class KubeClusterResource {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(KubeClusterResource.class);
+    private static final Logger LOGGER = LogManager.getLogger(KubeClusterResource.class);
 
     private KubeCluster kubeCluster;
     private KubeCmdClient cmdClient;
@@ -125,9 +124,5 @@ public class KubeClusterResource {
 
     public String getTestNamespace() {
         return testNamespace;
-    }
-
-    public boolean isNotKubernetes() {
-        return kubeClusterResource.cluster() instanceof OpenShift;
     }
 }

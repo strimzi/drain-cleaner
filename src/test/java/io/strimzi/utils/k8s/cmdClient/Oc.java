@@ -4,16 +4,10 @@
  */
 package io.strimzi.utils.k8s.cmdClient;
 
-import io.strimzi.utils.executor.Exec;
 import io.strimzi.utils.k8s.cluster.OpenShift;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
 
 /**
- * A {@link io.strimzi.utils.k8s.cmdClient.KubeCmdClient} implementation wrapping {@code oc}.
+ * A {@link KubeCmdClient} implementation wrapping {@code oc}.
  */
 public class Oc extends BaseCmdKubeClient<Oc> {
 
@@ -33,11 +27,6 @@ public class Oc extends BaseCmdKubeClient<Oc> {
     @Override
     public Oc namespace(String namespace) {
         return new Oc(namespace);
-    }
-
-    @Override
-    public String namespace() {
-        return namespace;
     }
 
     @Override

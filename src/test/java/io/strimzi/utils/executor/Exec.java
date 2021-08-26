@@ -5,8 +5,8 @@
 package io.strimzi.utils.executor;
 
 import io.strimzi.utils.k8s.exception.KubeClusterException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -17,7 +17,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
@@ -36,7 +35,7 @@ import static java.lang.String.join;
  * Class provide execution of external command
  */
 public class Exec {
-    private static final Logger LOGGER = LoggerFactory.getLogger(Exec.class);
+    private static final Logger LOGGER = LogManager.getLogger(Exec.class);
     private static final Pattern ERROR_PATTERN = Pattern.compile("Error from server \\(([a-zA-Z0-9]+)\\):");
     private static final Pattern INVALID_PATTERN = Pattern.compile("The ([a-zA-Z0-9]+) \"([a-z0-9.-]+)\" is invalid:");
     private static final Pattern PATH_SPLITTER = Pattern.compile(System.getProperty("path.separator"));
@@ -53,15 +52,6 @@ public class Exec {
 
     public Exec() {
         this.appendLineSeparator = true;
-    }
-
-    public Exec(Path logPath) {
-        this.appendLineSeparator = true;
-        this.logPath = logPath;
-    }
-
-    public Exec(boolean appendLineSeparator) {
-        this.appendLineSeparator = appendLineSeparator;
     }
 
     /**
@@ -104,17 +94,6 @@ public class Exec {
      */
     public static ExecResult exec(String... command) {
         return exec(Arrays.asList(command));
-    }
-
-    /**
-     * Method executes external command
-     *
-     * @param command arguments for command
-     * @return execution results
-     */
-    public static ExecResult exec(boolean logToOutput, String... command) {
-        List<String> commands = new ArrayList<>(Arrays.asList(command));
-        return exec(null, commands, 0, logToOutput);
     }
 
     /**
@@ -276,15 +255,6 @@ public class Exec {
         storeOutputsToFile();
 
         return retCode;
-    }
-
-    /**
-     * Method kills process
-     */
-    public void stop() {
-        process.destroyForcibly();
-        stdOut = stdOutReader.getData();
-        stdErr = stdErrReader.getData();
     }
 
     /**

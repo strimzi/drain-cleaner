@@ -5,7 +5,7 @@
 package io.strimzi.utils.k8s.cmdClient;
 
 /**
- * A {@link io.strimzi.utils.k8s.cmdClient.KubeCmdClient} wrapping {@code kubectl}.
+ * A {@link KubeCmdClient} wrapping {@code kubectl}.
  */
 public class Kubectl extends BaseCmdKubeClient<Kubectl> {
 
@@ -20,11 +20,6 @@ public class Kubectl extends BaseCmdKubeClient<Kubectl> {
     @Override
     public Kubectl namespace(String namespace) {
         return new Kubectl(namespace);
-    }
-
-    @Override
-    public String namespace() {
-        return namespace;
     }
 
     @Override

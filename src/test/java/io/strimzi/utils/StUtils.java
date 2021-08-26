@@ -4,22 +4,29 @@
  */
 package io.strimzi.utils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.internal.readiness.Readiness;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 import io.strimzi.utils.k8s.exception.WaitException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.function.BooleanSupplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
@@ -27,10 +34,13 @@ import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public final class StUtils {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(StUtils.class);
+    private static final Logger LOGGER = LogManager.getLogger(StUtils.class);
 
     public static final long GLOBAL_TIMEOUT = Duration.ofMinutes(5).toMillis();
     public static final long GLOBAL_POLL_INTERVAL = Duration.ofSeconds(1).toMillis();
+
+    private static final Pattern IMAGE_PATTERN_FULL_PATH = Pattern.compile("^(?<registry>[^/]*)/(?<org>[^/]*)/(?<image>[^:]*):(?<tag>.*)$");
+    private static final Pattern IMAGE_PATTERN = Pattern.compile("^(?<org>[^/]*)/(?<image>[^:]*):(?<tag>.*)$");
 
     private StUtils() {
         // All static methods
@@ -185,5 +195,47 @@ public final class StUtils {
                 // When pod is up, it will check that are rolled pods are stable for next 10 polls and then it return true
                 return ++counter[0] > 10;
             });
+    }
+
+    public static <T> T configFromYaml(File yamlFile, Class<T> c) {
+        ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
+        try {
+            return mapper.readValue(yamlFile, c);
+        } catch (InvalidFormatException e) {
+            throw new IllegalArgumentException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static String changeOrgAndTag(String image) {
+        Matcher m = IMAGE_PATTERN_FULL_PATH.matcher(image);
+        if (m.find()) {
+            String registry = setImageProperties(m.group("registry"), Environment.CLEANER_REGISTRY, Environment.CLEANER_REGISTRY_DEFAULT);
+            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG, Environment.CLEANER_ORG_DEFAULT);
+
+            return registry + "/" + org + "/" + m.group("image") + ":" + buildTag(m.group("tag"));
+        }
+        m = IMAGE_PATTERN.matcher(image);
+        if (m.find()) {
+            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG, Environment.CLEANER_ORG_DEFAULT);
+
+            return Environment.CLEANER_REGISTRY + "/" + org + "/" + m.group("image") + ":"  + buildTag(m.group("tag"));
+        }
+        return image;
+    }
+
+    private static String buildTag(String currentTag) {
+        if (!currentTag.equals(Environment.CLEANER_TAG) && !Environment.CLEANER_TAG_DEFAULT.equals(Environment.CLEANER_TAG)) {
+            currentTag = Environment.CLEANER_TAG;
+        }
+        return currentTag;
+    }
+
+    private static String setImageProperties(String current, String envVar, String defaultEnvVar) {
+        if (!envVar.equals(defaultEnvVar) && !current.equals(envVar)) {
+            return envVar;
+        }
+        return current;
     }
 }

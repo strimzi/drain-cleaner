@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -115,6 +116,10 @@ public class KubeClient {
     // ================================
     // ---------> DEPLOYMENT <---------
     // ================================
+
+    public Deployment createOrReplaceDeployment(Deployment deployment) {
+        return client.apps().deployments().inNamespace(deployment.getMetadata().getNamespace()).createOrReplace(deployment);
+    }
 
     /**
      * Gets deployment status

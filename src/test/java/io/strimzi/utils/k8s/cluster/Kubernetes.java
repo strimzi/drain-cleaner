@@ -13,8 +13,8 @@ import io.strimzi.utils.k8s.cmdClient.Kubectl;
 import io.strimzi.utils.k8s.exception.KubeClusterException;
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.time.Duration;
 import java.util.Arrays;
@@ -27,7 +27,7 @@ import java.util.List;
 public class Kubernetes implements KubeCluster {
 
     public static final String CMD = "kubectl";
-    private static final Logger LOGGER = LoggerFactory.getLogger(Kubernetes.class);
+    private static final Logger LOGGER = LogManager.getLogger(Kubernetes.class);
 
     @Override
     public boolean isAvailable() {
