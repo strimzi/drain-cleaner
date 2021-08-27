@@ -73,7 +73,7 @@ public class DrainCleanerST extends AbstractST {
                 .endSelector()
                 .withNewTemplate()
                     .withNewMetadata()
-            .addToAnnotations("dummy-annotation", "some-value")
+                        .addToAnnotations("dummy-annotation", "some-value")
                         .addToLabels("app", stsName)
                         .addToLabels("strimzi.io/kind", "Kafka")
                     .endMetadata()
