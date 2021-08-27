@@ -16,8 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DrainCleanerST extends AbstractST {
 
@@ -58,7 +57,7 @@ public class DrainCleanerST extends AbstractST {
 
         LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
         Map<String, String> annotations = kubeClient().namespace(NAMESPACE).getPod(podName).getMetadata().getAnnotations();
-        assertFalse(annotations.containsKey(MANUAL_RU_ANNO));
+        assertNull(annotations.get(MANUAL_RU_ANNO));
     }
 
     void createStatefulSetAndPDBWithWait(String stsName) {
@@ -74,6 +73,7 @@ public class DrainCleanerST extends AbstractST {
                 .endSelector()
                 .withNewTemplate()
                     .withNewMetadata()
+            .addToAnnotations("dummy-annotation", "some-value")
                         .addToLabels("app", stsName)
                         .addToLabels("strimzi.io/kind", "Kafka")
                     .endMetadata()
