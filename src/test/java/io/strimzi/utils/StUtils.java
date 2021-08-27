@@ -155,6 +155,14 @@ public final class StUtils {
         LOGGER.info("Deployment: {} in namespace: {} is ready", deploymentName, namespaceName);
     }
 
+    public static void waitForAnnotationToAppear(String namespaceName, String podName, String annotationKey) {
+        LOGGER.info("Waiting for annotation: {} to appear in pod: {}", annotationKey, podName);
+        waitFor(String.format("annotation: %s to appear in pod: %s", annotationKey, podName), GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
+            () -> kubeClient().namespace(namespaceName).getPod(podName).getMetadata().getAnnotations().get(annotationKey) != null);
+
+        LOGGER.info("Annotation: {} is present in pod: {}", annotationKey, podName);
+    }
+
     public static void waitForPodsReady(String namespaceName, LabelSelector selector, int expectPods, boolean containers) {
         int[] counter = {0};
 

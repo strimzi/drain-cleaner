@@ -9,24 +9,21 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.strimzi.utils.StUtils;
-import io.strimzi.utils.executor.Exec;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
-import org.yaml.snakeyaml.Yaml;
 
-import javax.print.attribute.standard.MediaSize;
 import java.util.Map;
 
-import static io.strimzi.utils.k8s.KubeClusterResource.cmdKubeClient;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 public class DrainCleanerST extends AbstractST {
 
     private static final Logger LOGGER = LogManager.getLogger(DrainCleanerST.class);
+
+    private static final String MANUAL_RU_ANNO = "strimzi.io/manual-rolling-update";
 
     @Test
     void testEvictionRequestOnKafkaPod() {
@@ -39,19 +36,17 @@ public class DrainCleanerST extends AbstractST {
         String podName = kubeClient().listPodsByPrefixInName(NAMESPACE, stsName).get(0).getMetadata().getName();
         kubeClient().getClient().pods().inNamespace(NAMESPACE).withName(podName).evict();
 
-        LOGGER.info("Checking that pod annotations will contain \"strimzi.io/manual-rolling-update: true\"");
+        LOGGER.info("Checking that pod annotations will contain \"{}: true\"", MANUAL_RU_ANNO);
+
+        StUtils.waitForAnnotationToAppear(NAMESPACE, podName, MANUAL_RU_ANNO);
+
         Map<String, String> annotations = kubeClient().namespace(NAMESPACE).getPod(podName).getMetadata().getAnnotations();
 
-        String depname = kubeClient().listPodsByPrefixInName(NAMESPACE, DEPLOYMENT_NAME).stream().findFirst().get().getMetadata().getName();
-        LOGGER.warn("{}", kubeClient().namespace(NAMESPACE).getPod(podName).toString());
-        LOGGER.info("{}", kubeClient().getClient().pods().inNamespace(NAMESPACE).withName(depname).getLog());
-        assertNotNull(annotations.get("strimzi.io/manual-rolling-update"));
-        assertEquals("true", annotations.get("strimzi.io/manual-rolling-update"));
+        assertEquals("true", annotations.get(MANUAL_RU_ANNO));
     }
 
     @Test
     void testEvictionRequestOnRandomPod() {
-        LOGGER.error("{}", kubeClient().getClient().apps().deployments().inNamespace(NAMESPACE).withName(DEPLOYMENT_NAME).get());
         final String stsName = "my-cluster-pulsar";
 
         LOGGER.info("Creating dummy pod that will not contain \"kafka\" or \"zookeeper\" in its name.");
@@ -61,10 +56,9 @@ public class DrainCleanerST extends AbstractST {
         String podName = kubeClient().listPodsByPrefixInName(NAMESPACE, stsName).get(0).getMetadata().getName();
         kubeClient().getClient().pods().inNamespace(NAMESPACE).withName(podName).evict();
 
-        LOGGER.info("Checking that pod annotations will not contain \"strimzi.io/manual-rolling-update\"");
+        LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
         Map<String, String> annotations = kubeClient().namespace(NAMESPACE).getPod(podName).getMetadata().getAnnotations();
-        LOGGER.warn("{}", annotations);
-        assertNull(annotations.get("strimzi.io/manual-rolling-update"));
+        assertFalse(annotations.containsKey(MANUAL_RU_ANNO));
     }
 
     void createStatefulSetAndPDBWithWait(String stsName) {
