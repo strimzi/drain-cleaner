@@ -5,23 +5,19 @@
 package io.strimzi.utils.k8s.cluster;
 
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.strimzi.utils.k8s.KubeClient;
 import io.strimzi.utils.k8s.exception.NoClusterException;
 import io.strimzi.utils.k8s.cmdClient.KubeCmdClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.Locale;
-
 /**
  * Abstraction for a Kubernetes cluster, for example {@code oc cluster up} or {@code minikube}.
  */
 public interface KubeCluster {
 
-    String ENV_VAR_TEST_CLUSTER = "TEST_CLUSTER";
-    Config CONFIG = Config.autoConfigure(System.getenv().getOrDefault("TEST_CLUSTER_CONTEXT", null));
+    Config CONFIG = Config.autoConfigure(null);
 
     /** Return true iff this kind of cluster installed on the local machine. */
     boolean isAvailable();
@@ -33,7 +29,7 @@ public interface KubeCluster {
     KubeCmdClient defaultCmdClient();
 
     default KubeClient defaultClient() {
-        return new KubeClient(new DefaultOpenShiftClient(CONFIG), "myproject");
+        return new KubeClient(new DefaultKubernetesClient(), "default");
     }
 
     /**
@@ -45,46 +41,18 @@ public interface KubeCluster {
     static KubeCluster bootstrap() throws NoClusterException {
         Logger logger = LogManager.getLogger(KubeCluster.class);
 
-        KubeCluster[] clusters = null;
-        String clusterName = System.getenv(ENV_VAR_TEST_CLUSTER);
-        if (clusterName != null) {
-            switch (clusterName.toLowerCase(Locale.ENGLISH)) {
-                case "oc":
-                    clusters = new KubeCluster[]{new OpenShift()};
-                    break;
-                case "minikube":
-                    clusters = new KubeCluster[]{new Minikube()};
-                    break;
-                case "kubernetes":
-                    clusters = new KubeCluster[]{new Kubernetes()};
-                    break;
-                default:
-                    throw new IllegalArgumentException(ENV_VAR_TEST_CLUSTER + "=" + clusterName + " is not a supported cluster type");
-            }
-        }
-        if (clusters == null) {
-            clusters = new KubeCluster[]{new Minikube(), new Kubernetes(), new OpenShift()};
-        }
-        KubeCluster cluster = null;
-        for (KubeCluster kc : clusters) {
-            if (kc.isAvailable()) {
-                logger.debug("Cluster {} is installed", kc);
-                if (kc.isClusterUp()) {
-                    logger.debug("Cluster {} is running", kc);
-                    cluster = kc;
-                    break;
-                } else {
-                    logger.warn("Cluster {} is not running!", kc);
-                }
+        KubeCluster cluster = new Kubernetes();
+        if (cluster.isAvailable()) {
+            logger.debug("kubectl is installed");
+            if (cluster.isClusterUp()) {
+                logger.debug("Cluster is running");
             } else {
-                logger.warn("Cluster {} is not installed!", kc);
+                throw new NoClusterException("Cluster is not running");
             }
+        } else {
+            throw new NoClusterException("Unable to find a cluster");
         }
-        if (cluster == null) {
-            throw new NoClusterException(
-                    "Unable to find a cluster; tried " + Arrays.toString(clusters));
-        }
-        logger.info("Using cluster: {}", cluster);
+
         return cluster;
     }
 }

@@ -1,4 +1,4 @@
-package io.strimzi.test.unittest;
+package io.strimzi.test;
 
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;

@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
 public final class StUtils {
@@ -38,6 +39,8 @@ public final class StUtils {
 
     public static final long GLOBAL_TIMEOUT = Duration.ofMinutes(5).toMillis();
     public static final long GLOBAL_POLL_INTERVAL = Duration.ofSeconds(1).toMillis();
+
+    public static final int POLL_TIME = 60;
 
     private static final Pattern IMAGE_PATTERN_FULL_PATH = Pattern.compile("^(?<registry>[^/]*)/(?<org>[^/]*)/(?<image>[^:]*):(?<tag>.*)$");
     private static final Pattern IMAGE_PATTERN = Pattern.compile("^(?<org>[^/]*)/(?<image>[^:]*):(?<tag>.*)$");
@@ -159,6 +162,27 @@ public final class StUtils {
         LOGGER.info("Waiting for annotation: {} to appear in pod: {}", annotationKey, podName);
         waitFor(String.format("annotation: %s to appear in pod: %s", annotationKey, podName), GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
             () -> kubeClient().namespace(namespaceName).getPod(podName).getMetadata().getAnnotations().get(annotationKey) != null);
+
+        LOGGER.info("Annotation: {} is present in pod: {}", annotationKey, podName);
+    }
+
+    public static void waitForAnnotationToNotAppear(String namespaceName, String podName, String annotationKey) {
+        LOGGER.info("Waiting for annotation: {} to not appear in pod: {}", annotationKey, podName);
+        int[] counter = {0};
+
+        waitFor(String.format("annotation: %s to not appear in pod: %s", annotationKey, podName), GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT, () -> {
+            if (kubeClient().namespace(namespaceName).getPod(podName).getMetadata().getAnnotations().get(annotationKey) == null) {
+                counter[0]++;
+                LOGGER.debug("Annotation {} is not present. Remaining number of polls: {}", annotationKey, POLL_TIME - counter[0]);
+                if (counter[0] >= POLL_TIME) {
+                    LOGGER.info("Annotation didn't appeared in {} polls", counter[0]);
+                    return true;
+                }
+                return false;
+            } else {
+                return fail(String.format("Annotation: %s appeared to pod: %s", annotationKey, podName));
+            }
+        });
 
         LOGGER.info("Annotation: {} is present in pod: {}", annotationKey, podName);
     }

@@ -40,7 +40,6 @@ public class DrainCleanerST extends AbstractST {
         StUtils.waitForAnnotationToAppear(NAMESPACE, podName, MANUAL_RU_ANNO);
 
         Map<String, String> annotations = kubeClient().namespace(NAMESPACE).getPod(podName).getMetadata().getAnnotations();
-
         assertEquals("true", annotations.get(MANUAL_RU_ANNO));
     }
 
@@ -56,8 +55,7 @@ public class DrainCleanerST extends AbstractST {
         kubeClient().getClient().pods().inNamespace(NAMESPACE).withName(podName).evict();
 
         LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
-        Map<String, String> annotations = kubeClient().namespace(NAMESPACE).getPod(podName).getMetadata().getAnnotations();
-        assertNull(annotations.get(MANUAL_RU_ANNO));
+        StUtils.waitForAnnotationToNotAppear(NAMESPACE, podName, MANUAL_RU_ANNO);
     }
 
     void createStatefulSetAndPDBWithWait(String stsName) {
