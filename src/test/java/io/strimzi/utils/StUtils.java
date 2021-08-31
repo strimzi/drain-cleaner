@@ -175,7 +175,7 @@ public final class StUtils {
                 counter[0]++;
                 LOGGER.debug("Annotation {} is not present. Remaining number of polls: {}", annotationKey, POLL_TIME - counter[0]);
                 if (counter[0] >= POLL_TIME) {
-                    LOGGER.info("Annotation didn't appeared in {} polls", counter[0]);
+                    LOGGER.info("Annotation didn't appear in {} polls", counter[0]);
                     return true;
                 }
                 return false;
@@ -183,8 +183,6 @@ public final class StUtils {
                 return fail(String.format("Annotation: %s appeared to pod: %s", annotationKey, podName));
             }
         });
-
-        LOGGER.info("Annotation: {} is present in pod: {}", annotationKey, podName);
     }
 
     public static void waitForPodsReady(String namespaceName, LabelSelector selector, int expectPods, boolean containers) {
