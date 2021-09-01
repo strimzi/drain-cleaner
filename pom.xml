@@ -18,6 +18,7 @@
     <quarkus.platform.version>2.1.1.Final</quarkus.platform.version>
     <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
     <log4j.version>2.14.1</log4j.version>
+    <jayway-jsonpath.version>2.6.0</jayway-jsonpath.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -67,27 +68,27 @@
       <artifactId>quarkus-resteasy-jackson</artifactId>
     </dependency>
     <dependency>
-      <scope>test</scope>
       <groupId>com.jayway.jsonpath</groupId>
       <artifactId>json-path</artifactId>
-      <version>2.6.0</version>
+      <version>${jayway-jsonpath.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <scope>test</scope>
       <groupId>org.jboss.logmanager</groupId>
       <artifactId>log4j2-jboss-logmanager</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <scope>test</scope>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
       <version>${log4j.version}</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
-      <scope>test</scope>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
       <version>${log4j.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
   <build>
