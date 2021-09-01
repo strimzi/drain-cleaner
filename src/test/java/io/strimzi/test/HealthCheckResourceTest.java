@@ -1,4 +1,4 @@
-package io.strimzi;
+package io.strimzi.test;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.Test;

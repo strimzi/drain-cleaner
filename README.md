@@ -181,6 +181,21 @@ You can use the following environment variables to configure where will the imag
   For example `my-org`.
 * `DOCKER_TAG` defines the tag under which will the image be pushed. 
 
+## Running Systemtests
+
+If you want to ensure that everything works, you can run systemtests using:
+```
+mvn verify -Psystemtest
+```
+
+Before you run the tests, you should be logged in to Kubernetes or Openshift cluster.
+Also, you can specify environment variables, that will be used in the Drain Cleaner deployment file:
+* `DOCKER_REGISTRY` defines the registry from where the image should be pulled.
+  For example `docker.io`.
+* `DOCKER_ORG` defines the organization from where the image should be pulled.
+  For example `my-org`.
+* `DOCKER_TAG` defines the tag which should be used.
+
 ## Test
 
 Some unit tests are included.

@@ -16,6 +16,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Dependent
@@ -87,7 +88,7 @@ public class ValidatingWebhook {
                     && "Kafka".equals(pod.getMetadata().getLabels().get("strimzi.io/kind"))) {
                 if (pod.getMetadata().getAnnotations() == null
                         || !"true".equals(pod.getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"))) {
-                    pod.getMetadata().getAnnotations().put("strimzi.io/manual-rolling-update", "true");
+                    pod.getMetadata().setAnnotations(Map.of("strimzi.io/manual-rolling-update", "true"));
                     client.pods().inNamespace(namespace).withName(name).patch(pod);
 
                     LOG.info("Pod {} in namespace {} found and annotated for restart", name, namespace);
