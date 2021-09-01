@@ -35,7 +35,6 @@ public class AbstractST {
     public static final String DEPLOYMENT_NAME = "strimzi-drain-cleaner";
     private static final String INSTALL_PATH = USER_PATH + "/install/kubernetes/";
 
-
     protected static KubeClusterResource cluster;
     private static Stack<String> createdFiles = new Stack<>();
 

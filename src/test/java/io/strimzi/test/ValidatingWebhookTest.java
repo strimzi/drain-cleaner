@@ -1,3 +1,7 @@
+/*
+ * Copyright Strimzi authors.
+ * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
+ */
 package io.strimzi.test;
 
 import io.fabric8.kubernetes.api.model.Pod;
@@ -11,7 +15,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.quarkus.test.junit.QuarkusTest;
 import io.strimzi.ValidatingWebhook;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,10 +30,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
 import static org.mockito.Mockito.when;
 
-@QuarkusTest
-public class DrainCleanerTest {
+public class ValidatingWebhookTest {
     KubernetesClient client;
     MixedOperation<Pod, PodList, PodResource<Pod>> pods;
     NonNamespaceOperation<Pod, PodList, PodResource<Pod>> inNamespace;
