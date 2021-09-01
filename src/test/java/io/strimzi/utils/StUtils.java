@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity"})
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:CyclomaticComplexity", "checkstyle:NPathComplexity"})
 public final class StUtils {
 
     private static final Logger LOGGER = LogManager.getLogger(StUtils.class);
