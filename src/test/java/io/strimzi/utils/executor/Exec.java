@@ -34,6 +34,7 @@ import static java.lang.String.join;
 /**
  * Class provide execution of external command
  */
+@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling", "checkstyle:CyclomaticComplexity", "checkstyle:NPathComplexity"})
 public class Exec {
     private static final Logger LOGGER = LogManager.getLogger(Exec.class);
     private static final Pattern ERROR_PATTERN = Pattern.compile("Error from server \\(([a-zA-Z0-9]+)\\):");
