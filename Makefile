@@ -25,8 +25,8 @@ release_version:
 
 release_maven:
 	echo "Update pom versions to $(RELEASE_VERSION)"
-	mvn versions:set -DnewVersion=$(shell echo $(RELEASE_VERSION) | tr a-z A-Z)
-	mvn versions:commit
+	mvn $(MVN_ARGS) versions:set -DnewVersion=$(shell echo $(RELEASE_VERSION) | tr a-z A-Z)
+	mvn $(MVN_ARGS) versions:commit
 
 release_pkg:
 	$(CP) -r ./packaging/install ./
