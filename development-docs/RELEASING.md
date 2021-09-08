@@ -22,8 +22,6 @@ The release preparation includes updating the installation files for the new ver
 This is implemented in the `Makefiles`, you just need to run the command `RELEASE_VERSION=<NewRealeaseVersion> make release`.
 For example, for release 1.2.0, you would run `RELEASE_VERSION=1.2.0 make release`.
 
-TODO: Copy the install files in Makefiles
-
 Review and commit the changes done by the `make` command and push them into the repository.
 The build pipeline should automatically start for any new commit pushed into the release branch.
 
