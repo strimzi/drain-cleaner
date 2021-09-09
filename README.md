@@ -109,114 +109,23 @@ You can easily test how it works:
     * The `kubetl drain` command will wait for the Kafka / ZooKeeper to be drained
     * The Drain Cleaner log should show how it gets the eviction events
     * Strimzi Cluster Operator log should show how it rolls the pods which are being evicted
-    
-## Build 
 
-This project uses [Quarkus, the Supersonic Subatomic Java Framework](https://quarkus.io/).
-It can be build directly using Maven.
-But it also has a simple Make build to make it easier to build the binary and the container image.
+## Getting help
 
-### Running the application in dev mode
+If you encounter any issues while using Strimzi, you can get help using:
 
-You can run the application in dev mode that enables live coding using:
-```shell script
-mvn compile quarkus:dev
-```
+- [#strimzi channel on CNCF Slack](https://slack.cncf.io/)
+- [Strimzi Users mailing list](https://lists.cncf.io/g/cncf-strimzi-users/topics)
+- [GitHub Discussions](https://github.com/strimzi/drain-cleaner/discussions)
 
-### Creating a native executable using Maven
+## Contributing
 
-If you have [GraalVM](https://www.graalvm.org/) installed locally, you can create a native executable using: 
-```shell script
-mvn package -Pnative
-```
+You can contribute by raising any issues you find and/or fixing issues by opening Pull Requests.
+All bugs, tasks or enhancements are tracked as [GitHub issues](https://github.com/strimzi/drain-cleaner/issues).
 
-Or you can run the native executable build for Linux in a container using: 
-```shell script
-mvn package -Pnative -Dquarkus.native.container-build=true
-```
+The [development documentation](./development-docs) describe how to build, test and release Strimzi Drain Cleaner.
 
-This is useful especially when running on other operating systems such as macOS or when you don't have GraalVM installed.
+## License
 
-You can then execute your native executable with: `./target/strimzi-drain-cleaner-1.0.0-SNAPSHOT-runner`.
+Strimzi is licensed under the [Apache License](./LICENSE), Version 2.0
 
-### Creating a native executable using Make
-
-If you have [GraalVM](https://www.graalvm.org/) installed locally, you can create a native executable using: 
-```shell script
-make java_package
-```
-
-Or you can run the native executable build for Linux in a container using: 
-```shell script
-MVN_ARGS=-Dquarkus.native.container-build=true make java_package
-```
-
-This is useful especially when running on other operating systems such as macOS or when you don't have GraalVM installed.
-
-You can then execute your native executable with: `./target/strimzi-drain-cleaner-1.0.0-SNAPSHOT-runner`.
-
-### Building a container image manually
-
-After you have the native executable, you can build the container manually:
-
-```
-docker build -f Dockerfile -t my-registry.tld/my-org/strimzi-drain-cleaner:latest .
-docker push my-registry.tld/my-org/strimzi-drain-cleaner:latest
-```
-
-_Update the container image name to match your own registry / organization etc._
-
-### Building a container image using Make
-
-You can also build the image and push it into the registry using Make:
-
-```
-make docker_build docker_push
-```
-
-You can use the following environment variables to configure where will the image be pushed:
-* `DOCKER_REGISTRY` defines the registry where it will be pushed. 
-  For example `docker.io`.
-* `DOCKER_ORG` defines the organization where it will be pushed. 
-  For example `my-org`.
-* `DOCKER_TAG` defines the tag under which will the image be pushed. 
-
-## Running Systemtests
-
-If you want to ensure that everything works, you can run systemtests using:
-```
-mvn verify -Psystemtest
-```
-
-Before you run the tests, you should be logged in to Kubernetes or Openshift cluster.
-Also, you can specify environment variables, that will be used in the Drain Cleaner deployment file:
-* `DOCKER_REGISTRY` defines the registry from where the image should be pulled.
-  For example `docker.io`.
-* `DOCKER_ORG` defines the organization from where the image should be pulled.
-  For example `my-org`.
-* `DOCKER_TAG` defines the tag which should be used.
-
-## Test
-
-Some unit tests are included.
-You can also test it manually by evicting pods or by posting admission reviews.
-
-### Evicting pods
-
-* Install the Drain Cleaner
-* Proxy to the Kubernetes API server
-  ```
-  kubectl proxy
-  ```
-* Use `curl` to trigger eviction _(change pod name and namespace as needed)_:
-  ```
-  curl -v -H 'Content-type: application/json' http://localhost:8001/api/v1/namespaces/myproject/pods/my-cluster-zookeeper-1/eviction -d @src/test/resources/example-eviction-request.json
-  ```
-
-### Posting admission review requests
-
-* Run Drain Cleaner locally (`mvn compile quarkus:dev`)
-* Use `curl` to post the Admission Review Request manually:
-  ```
-  curl -v -H 'Content-type: application/json' http://localhost:8080/drainer -d @src/test/resources/example-admission-review.json
-  ```
