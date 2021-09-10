@@ -16,17 +16,14 @@ public class Environment {
     private static final Map<String, String> VALUES = new HashMap<>();
 
     private static final String CLEANER_REGISTRY_ENV = "DOCKER_REGISTRY";
-    public static final String CLEANER_REGISTRY_DEFAULT = "quay.io";
 
     private static final String CLEANER_ORG_ENV = "DOCKER_ORG";
-    public static final String CLEANER_ORG_DEFAULT = "strimzi";
 
     private static final String CLEANER_TAG_ENV = "DOCKER_TAG";
-    public static final String CLEANER_TAG_DEFAULT = "latest";
 
-    public static final String CLEANER_REGISTRY = getOrDefault(CLEANER_REGISTRY_ENV, CLEANER_REGISTRY_DEFAULT);
-    public static final String CLEANER_ORG = getOrDefault(CLEANER_ORG_ENV, CLEANER_ORG_DEFAULT);
-    public static final String CLEANER_TAG = getOrDefault(CLEANER_TAG_ENV, CLEANER_TAG_DEFAULT);
+    public static final String CLEANER_REGISTRY = getOrDefault(CLEANER_REGISTRY_ENV, null);
+    public static final String CLEANER_ORG = getOrDefault(CLEANER_ORG_ENV, null);
+    public static final String CLEANER_TAG = getOrDefault(CLEANER_TAG_ENV, null);
 
     static {
         String debugFormat = "{}: {}";
@@ -36,8 +33,8 @@ public class Environment {
         LOGGER.info(String.join("", Collections.nCopies(76, "#")));
     }
 
-    private static <T> String getOrDefault(String var, T defaultValue) {
-        String value = System.getenv(var) != null ? System.getenv(var) : defaultValue.toString();
+    private static String getOrDefault(String var, String defaultValue) {
+        String value = System.getenv(var) != null ? System.getenv(var) : defaultValue;
         VALUES.put(var, value);
         return value;
     }
