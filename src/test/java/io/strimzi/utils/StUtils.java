@@ -241,29 +241,35 @@ public final class StUtils {
     public static String changeOrgAndTag(String image) {
         Matcher m = IMAGE_PATTERN_FULL_PATH.matcher(image);
         if (m.find()) {
-            String registry = setImageProperties(m.group("registry"), Environment.CLEANER_REGISTRY, Environment.CLEANER_REGISTRY_DEFAULT);
-            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG, Environment.CLEANER_ORG_DEFAULT);
+            String registry = setImageProperties(m.group("registry"), Environment.CLEANER_REGISTRY);
+            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG);
+            String tag = setImageProperties(m.group("tag"), Environment.CLEANER_TAG);
 
-            return registry + "/" + org + "/" + m.group("image") + ":" + buildTag(m.group("tag"));
+            String newImage = registry + "/" + org + "/" + m.group("image") + ":" + tag;
+
+            LOGGER.info("Updating container image to {}", newImage);
+
+            return newImage;
         }
+
         m = IMAGE_PATTERN.matcher(image);
         if (m.find()) {
-            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG, Environment.CLEANER_ORG_DEFAULT);
+            String registry = Environment.CLEANER_REGISTRY != null ? Environment.CLEANER_REGISTRY + "/" : "";
+            String org = setImageProperties(m.group("org"), Environment.CLEANER_ORG);
+            String tag = setImageProperties(m.group("tag"), Environment.CLEANER_TAG);
 
-            return Environment.CLEANER_REGISTRY + "/" + org + "/" + m.group("image") + ":"  + buildTag(m.group("tag"));
+            String newImage = registry + org + "/" + m.group("image") + ":"  + tag;
+
+            LOGGER.info("Updating container image to {}", newImage);
+
+            return newImage;
         }
+
         return image;
     }
 
-    private static String buildTag(String currentTag) {
-        if (!currentTag.equals(Environment.CLEANER_TAG) && !Environment.CLEANER_TAG_DEFAULT.equals(Environment.CLEANER_TAG)) {
-            currentTag = Environment.CLEANER_TAG;
-        }
-        return currentTag;
-    }
-
-    private static String setImageProperties(String current, String envVar, String defaultEnvVar) {
-        if (!envVar.equals(defaultEnvVar) && !current.equals(envVar)) {
+    private static String setImageProperties(String current, String envVar) {
+        if (envVar != null && !current.equals(envVar)) {
             return envVar;
         }
         return current;
