@@ -38,7 +38,7 @@ When starting the new run, it will ask for several parameters which you need to 
 * Source build ID (the ID of the build from which the artifacts should be used - use the long build ID from the URL and not the shorter build number)
 
 The release pipeline will push the images to the registry.
-It will also prepare in artifacts the ZIp and TAR.GZ archives with the installation files.
+It will also prepare in artifacts the ZIP and TAR.GZ archives with the installation files.
 These will be later attached to the GitHub releases.
 
 ### Smoke tests
@@ -62,10 +62,35 @@ Announce the release on following channels:
 ### Release candidates
 
 Release candidates are built with the same release pipeline as the final releases.
-When statrting the pipeline, use the RC name as the release veresion.
+When starting the pipeline, use the RC name as the release version.
 For example `1.2.0-rc1` or `1.2.0-rc2`.
 For release pipelines, you should skip the suffixed build since it is not needed.
 
 When doing the release candidates, the release branch should be already prepared for the final release.
 E.g. when building `1.2.0-rc1`, the release branch should have already the `1.2.0` versions set.
 The release candidate version (e.g. `1.2.0-rc1`) should be used for the GitHub tag and release.
+
+## Rebuilding container images for base image CVEs
+
+In case of a CVE in the base container image, we might need to rebuild the Drain Cleaner container image.
+This can be done using the `drain-cleaner-cve-rebuild` pipeline.
+This pipeline will take a previously build binaries and and use them to build a new container image.
+It will also automatically run the system tests and push the container image to the container registry with the suffixed tag (e.g. `1.2.0-2`).
+Afterwards, it will wait for manual approval.
+This gives additional time to manually test the new container image.
+After the manual approval, the image will be also pushed under the tag without suffix (e.g. `1.2.0`).
+
+The suffix can be specified when starting the re-build pipeline.
+You should always check what was the previous suffix and increment it.
+That way, the older images will be still available in the container registry under their own suffixes.
+But only the latest rebuild will be available under the un-suffixed tag.
+
+When starting the pipeline, it will ask for several parameters which you need to fill:
+
+* Release version (for example `1.2.0`)
+* Release suffix (for example `0` - it is used to create the suffixed images such as `strimzi/drain-cleaner:1.2.0-2` to identify different builds done for different CVEs)
+* Source pipeline ID (Currently, only the build pipeline with ID `36` can be used)
+* Source build ID (the ID of the build from which the artifacts should be used - use the long build ID from the URL and not the shorter build number)
+
+This process should be used only for CVEs in the base images.
+Any CVEs in our code or in the Java dependencies require new patch (or minor) release.
