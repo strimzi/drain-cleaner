@@ -86,13 +86,13 @@ public class ValidatingWebhookTest {
 
     @Test
     public void testDryRun() {
-        String podName = "my-cluster-connect-1";
+        String podName = "my-cluster-kafka-1";
         ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, true));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, never()).get();
+        verify(podResource, times(1)).get();
         verify(podResource, never()).patch((Pod) any());
     }
 
