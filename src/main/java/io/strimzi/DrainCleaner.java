@@ -30,7 +30,7 @@ public class DrainCleaner implements Runnable {
     @Override
     public void run() {
         if (!kafka && !zoo) {
-            LOG.error("At least one of the --kafka and --zookeeper options needs ot be enabled!");
+            LOG.error("At least one of the --kafka and --zookeeper options needs to be enabled!");
             System.exit(1);
         } else {
             List<String> contains = new ArrayList<>(2);
