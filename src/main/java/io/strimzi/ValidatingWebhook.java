@@ -61,13 +61,8 @@ public class ValidatingWebhook {
                 String namespace = eviction.getMetadata().getNamespace();
 
                 LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
+                annotatePodForRestart(name, namespace, request.getDryRun());
 
-                if (request.getDryRun())    {
-                    LOG.info("Running in dry-run mode. Pod {} in namespace {} will not be annotated for restart", name, namespace);
-                } else {
-                    LOG.info("Pod {} in namespace {} will be annotated for restart", name, namespace);
-                    annotatePodForRestart(name, namespace);
-                }
             } else {
                 LOG.info("Received eviction event which does not match any relevant pods.");
             }
@@ -83,7 +78,7 @@ public class ValidatingWebhook {
                 .build();
     }
 
-    void annotatePodForRestart(String name, String namespace)    {
+    void annotatePodForRestart(String name, String namespace, boolean dryRun)    {
         Pod pod = client.pods().inNamespace(namespace).withName(name).get();
 
         if (pod != null) {
@@ -92,20 +87,24 @@ public class ValidatingWebhook {
                     && "Kafka".equals(pod.getMetadata().getLabels().get("strimzi.io/kind"))) {
                 if (pod.getMetadata().getAnnotations() == null
                         || !"true".equals(pod.getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"))) {
-                    pod.getMetadata().setAnnotations(Map.of("strimzi.io/manual-rolling-update", "true"));
-                    client.pods().inNamespace(namespace).withName(name).patch(pod);
-
-                    LOG.info("Pod {} in namespace {} found and annotated for restart", name, namespace);
+                    if (!dryRun) {
+                        pod.getMetadata().setAnnotations(Map.of("strimzi.io/manual-rolling-update", "true"));
+                        LOG.info("Pod {} in namespace {} will be annotated for restart", name, namespace);
+                        client.pods().inNamespace(namespace).withName(name).patch(pod);
+                        LOG.info("Pod {} in namespace {} was annotated for restart", name, namespace);
+                    } else {
+                        LOG.info("Pod {} in namespace {} was not annotated because webhook is in dry-run mode.",
+                                name, namespace);
+                    }
                 } else {
                     LOG.info("Pod {} in namespace {} is already annotated for restart", name, namespace);
                 }
 
-
             } else {
-                LOG.debug("Pod {} in namespace {} is not Strimzi pod", name, namespace);
+                LOG.debug("Pod {} in namespace {} is not a Strimzi pod", name, namespace);
             }
         } else {
-            LOG.warn("Pod {} in namespace {} was not found and cannot be annotated", name, namespace);
+            LOG.warn("Pod {} in namespace {} was not found so cannot be annotated", name, namespace);
         }
     }
 }
