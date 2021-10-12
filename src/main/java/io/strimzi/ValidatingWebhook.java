@@ -13,7 +13,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -23,7 +22,6 @@ import javax.ws.rs.core.MediaType;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-@Dependent
 @Path("/drainer")
 public class ValidatingWebhook {
     private static final Logger LOG = LoggerFactory.getLogger(ValidatingWebhook.class);

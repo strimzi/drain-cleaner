@@ -19,11 +19,10 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     
     <!-- Quarkus -->
-    <quarkus-plugin.version>2.2.2.Final</quarkus-plugin.version>
-    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>2.2.2.Final</quarkus.platform.version>
-    
+    <quarkus.group-id>io.quarkus</quarkus.group-id>
+    <quarkus.artifact-id>quarkus-bom</quarkus.artifact-id>
+    <quarkus.version>2.4.0.Final</quarkus.version>
+
     <!-- Other versions -->
     <log4j.version>2.14.1</log4j.version>
     <jayway-jsonpath.version>2.6.0</jayway-jsonpath.version>
@@ -31,9 +30,9 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>${quarkus.platform.group-id}</groupId>
-        <artifactId>${quarkus.platform.artifact-id}</artifactId>
-        <version>${quarkus.platform.version}</version>
+        <groupId>${quarkus.group-id}</groupId>
+        <artifactId>${quarkus.artifact-id}</artifactId>
+        <version>${quarkus.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -134,7 +133,7 @@
       <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus-plugin.version}</version>
+        <version>${quarkus.version}</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -216,7 +215,7 @@
           <plugin>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-maven-plugin</artifactId>
-            <version>${quarkus-plugin.version}</version>
+            <version>${quarkus.version}</version>
             <extensions>true</extensions>
             <executions>
               <execution>

@@ -25,13 +25,14 @@ public class DrainCleaner implements Runnable {
     boolean zoo;
 
     @Produces
-    static Pattern matchingPattern;
+    Pattern matchingPattern;
 
     @Override
     public void run() {
         if (!kafka && !zoo) {
             LOG.error("At least one of the --kafka and --zookeeper options needs to be enabled!");
-            System.exit(1);
+            Quarkus.asyncExit(1);
+            return;
         } else {
             List<String> contains = new ArrayList<>(2);
 
