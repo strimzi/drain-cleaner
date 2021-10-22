@@ -113,7 +113,7 @@ public class ValidatingWebhook {
             client.pods().inNamespace(namespace).withName(name).patch(pod);
             LOG.info("Pod {} in namespace {} was patched", name, namespace);
         } else {
-            LOG.info("Pod {} in namespace {} was not annotated because webhook is in dry-run mode.", name, namespace);
+            LOG.info("Pod {} in namespace {} was not patched because webhook is in dry-run mode.", name, namespace);
         }
     }
 }
