@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
@@ -66,6 +67,50 @@ public class ValidatingWebhookTest {
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testEvictionOnPodWithoutAnnotations() {
+        String podName = "my-cluster-kafka-1";
+        Pod mockedPod = mockedPod(podName, true, false);
+        mockedPod.getMetadata().setAnnotations(null);
+
+        when(podResource.get()).thenReturn(mockedPod);
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().size(), is(1));
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testEvictionOnPodWithExistingAnnotations() {
+        String podName = "my-cluster-kafka-1";
+        Pod mockedPod = mockedPod(podName, true, false);
+        mockedPod.getMetadata().setAnnotations(Map.of("someAnno1", "someValue1", "someAnno2", "someValue2"));
+
+        when(podResource.get()).thenReturn(mockedPod);
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().size(), is(3));
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("someAnno1"), is("someValue1"));
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("someAnno2"), is("someValue2"));
     }
 
     @Test
