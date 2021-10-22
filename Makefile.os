@@ -2,7 +2,6 @@ FIND = find
 SED = sed
 GREP = grep
 CP = cp
-NATIVE_DOCKER_BUILD = ""
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
