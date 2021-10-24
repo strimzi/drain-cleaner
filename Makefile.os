@@ -9,4 +9,5 @@ ifeq ($(UNAME_S),Darwin)
 	SED = gsed
 	GREP = ggrep
 	CP = gcp
+	NATIVE_DOCKER_BUILD = "-Dquarkus.native.container-build=true"
 endif
