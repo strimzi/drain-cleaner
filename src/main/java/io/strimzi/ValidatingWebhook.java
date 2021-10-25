@@ -20,6 +20,7 @@ import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -85,17 +86,16 @@ public class ValidatingWebhook {
             if (pod.getMetadata() != null
                     && pod.getMetadata().getLabels() != null
                     && "Kafka".equals(pod.getMetadata().getLabels().get("strimzi.io/kind"))) {
-                if (pod.getMetadata().getAnnotations() == null
-                        || !"true".equals(pod.getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"))) {
-                    if (!dryRun) {
-                        pod.getMetadata().setAnnotations(Map.of("strimzi.io/manual-rolling-update", "true"));
-                        LOG.info("Pod {} in namespace {} will be annotated for restart", name, namespace);
-                        client.pods().inNamespace(namespace).withName(name).patch(pod);
-                        LOG.info("Pod {} in namespace {} was annotated for restart", name, namespace);
-                    } else {
-                        LOG.info("Pod {} in namespace {} was not annotated because webhook is in dry-run mode.",
-                                name, namespace);
-                    }
+                if (pod.getMetadata().getAnnotations() == null) {
+                    pod.getMetadata().setAnnotations(Map.of("strimzi.io/manual-rolling-update", "true"));
+                    LOG.info("Pod {} in namespace {} should be annotated for restart", name, namespace);
+                    patchPod(name, namespace, pod, dryRun);
+                } else if (!"true".equals(pod.getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"))) {
+                    Map<String, String> newAnnos = new HashMap<>(pod.getMetadata().getAnnotations());
+                    newAnnos.put("strimzi.io/manual-rolling-update", "true");
+                    pod.getMetadata().setAnnotations(newAnnos);
+                    LOG.info("Pod {} in namespace {} should be annotated for restart", name, namespace);
+                    patchPod(name, namespace, pod, dryRun);
                 } else {
                     LOG.info("Pod {} in namespace {} is already annotated for restart", name, namespace);
                 }
@@ -105,6 +105,15 @@ public class ValidatingWebhook {
             }
         } else {
             LOG.warn("Pod {} in namespace {} was not found so cannot be annotated", name, namespace);
+        }
+    }
+
+    void patchPod(String name, String namespace, Pod pod, boolean dryRun)   {
+        if (!dryRun) {
+            client.pods().inNamespace(namespace).withName(name).patch(pod);
+            LOG.info("Pod {} in namespace {} was patched", name, namespace);
+        } else {
+            LOG.info("Pod {} in namespace {} was not patched because webhook is in dry-run mode.", name, namespace);
         }
     }
 }
