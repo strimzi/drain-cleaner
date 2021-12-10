@@ -25,7 +25,7 @@
     <quarkus.platform.version>2.4.2.Final</quarkus.platform.version>
     
     <!-- Other versions -->
-    <log4j.version>2.14.1</log4j.version>
+    <log4j.version>2.15.0</log4j.version>
     <jayway-jsonpath.version>2.6.0</jayway-jsonpath.version>
   </properties>
   <dependencyManagement>
