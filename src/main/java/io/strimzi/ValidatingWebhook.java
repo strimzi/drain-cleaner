@@ -61,9 +61,19 @@ public class ValidatingWebhook {
                 String name = eviction.getMetadata().getName();
                 String namespace = eviction.getMetadata().getNamespace();
 
-                LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
-                annotatePodForRestart(name, namespace, request.getDryRun());
+                if (namespace == null)  {
+                    // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
+                    // request without the namespace. In such case, we use the namespace form the AdmissionRequest.
+                    LOG.debug("There is no namespace in the Eviction request - trying to use namespace of the Admission request");
+                    namespace = request.getNamespace();
+                }
 
+                if (name == null || namespace == null)  {
+                    LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
+                } else {
+                    LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
+                    annotatePodForRestart(name, namespace, request.getDryRun());
+                }
             } else {
                 LOG.info("Received eviction event which does not match any relevant pods.");
             }
