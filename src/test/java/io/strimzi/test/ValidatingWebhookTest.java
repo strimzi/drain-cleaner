@@ -10,7 +10,7 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReviewBuilder;
-import io.fabric8.kubernetes.api.model.policy.v1beta1.EvictionBuilder;
+import io.fabric8.kubernetes.api.model.policy.v1.EvictionBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -228,7 +228,7 @@ public class ValidatingWebhookTest {
         AdmissionRequest admissionRequest = new AdmissionRequest();
         admissionRequest.setObject(new EvictionBuilder()
                 .withNewMetadata()
-                .withName(podName)
+                    .withName(podName)
                 .endMetadata()
                 .build());
         admissionRequest.setDryRun(false);
@@ -247,7 +247,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(1)).get();
+        verify(podResource, never()).get();
         verify(podResource, never()).patch((Pod) any());
     }
 

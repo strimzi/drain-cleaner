@@ -8,7 +8,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReviewBuilder;
-import io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction;
+import io.fabric8.kubernetes.api.model.policy.v1.Eviction;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +64,7 @@ public class ValidatingWebhook {
                 if (namespace == null)  {
                     // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
                     // request without the namespace. In such case, we use the namespace form the AdmissionRequest.
-                    LOG.debug("There is no namespace in the Eviction request - trying to use namespace of the Admission request");
+                    LOG.warn("There is no namespace in the Eviction request - trying to use namespace of the Admission request");
                     namespace = request.getNamespace();
                 }
 
