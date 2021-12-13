@@ -10,7 +10,7 @@ import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReviewBuilder;
-import io.fabric8.kubernetes.api.model.policy.v1beta1.EvictionBuilder;
+import io.fabric8.kubernetes.api.model.policy.v1.EvictionBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -40,6 +41,7 @@ public class ValidatingWebhookTest {
     NonNamespaceOperation<Pod, PodList, PodResource<Pod>> inNamespace;
     PodResource<Pod> podResource;
 
+    @SuppressWarnings("unchecked")
     @BeforeEach
     public void setup() {
         client = mock(KubernetesClient.class);
@@ -48,7 +50,7 @@ public class ValidatingWebhookTest {
         podResource = mock(PodResource.class);
 
         when(inNamespace.withName(any())).thenReturn(podResource);
-        when(pods.inNamespace(any())).thenReturn(inNamespace);
+        when(pods.inNamespace(eq("my-namespace"))).thenReturn(inNamespace);
         when(client.pods()).thenReturn(pods);
     }
 
@@ -184,6 +186,68 @@ public class ValidatingWebhookTest {
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
+        verify(podResource, never()).patch((Pod) any());
+    }
+
+    @Test
+    public void testEvictionWithoutNamespace() {
+        String podName = "my-cluster-kafka-1";
+
+        AdmissionRequest admissionRequest = new AdmissionRequest();
+        admissionRequest.setObject(new EvictionBuilder()
+                .withNewMetadata()
+                .withName(podName)
+                .endMetadata()
+                .build());
+        admissionRequest.setDryRun(false);
+        admissionRequest.setNamespace("my-namespace");
+        admissionRequest.setUid("SOME-UUID");
+
+        AdmissionReview request =  new AdmissionReviewBuilder()
+                .withRequest(admissionRequest)
+                .build();
+
+        when(podResource.get()).thenReturn(mockedPod(podName, true, false));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        AdmissionReview reviewResponse = webhook.webhook(request);
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testNoNamespaceAnywhere() {
+        String podName = "my-cluster-kafka-1";
+
+        AdmissionRequest admissionRequest = new AdmissionRequest();
+        admissionRequest.setObject(new EvictionBuilder()
+                .withNewMetadata()
+                    .withName(podName)
+                .endMetadata()
+                .build());
+        admissionRequest.setDryRun(false);
+        admissionRequest.setUid("SOME-UUID");
+
+        AdmissionReview request =  new AdmissionReviewBuilder()
+                .withRequest(admissionRequest)
+                .build();
+
+        when(podResource.get()).thenReturn(mockedPod(podName, true, false));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        AdmissionReview reviewResponse = webhook.webhook(request);
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, never()).get();
         verify(podResource, never()).patch((Pod) any());
     }
 
