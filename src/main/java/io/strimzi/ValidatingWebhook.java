@@ -4,6 +4,7 @@
  */
 package io.strimzi;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
@@ -45,6 +46,20 @@ public class ValidatingWebhook {
         this.matchingPattern = matchingPattern;
     }
 
+    private ObjectMeta extractEvictionMetadata(AdmissionRequest request)    {
+        if (request.getObject() instanceof Eviction) {
+            LOG.debug("Received Eviction request of version v1");
+            Eviction eviction = (Eviction) request.getObject();
+            return eviction.getMetadata();
+        } else if (request.getObject() instanceof io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction) {
+            LOG.debug("Received Eviction request of version v1beta1");
+            io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction eviction = (io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction) request.getObject();
+            return eviction.getMetadata();
+        } else {
+            return null;
+        }
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -52,23 +67,21 @@ public class ValidatingWebhook {
         LOG.debug("Received AdmissionReview request: {}", review);
 
         AdmissionRequest request = review.getRequest();
+        ObjectMeta evictionMetadata = extractEvictionMetadata(request);
 
-        if (request.getObject() instanceof Eviction)    {
-            Eviction eviction = (Eviction) request.getObject();
+        if (evictionMetadata != null)   {
+            if (matchingPattern.matcher(evictionMetadata.getName()).matches()) {
+                String name = evictionMetadata.getName();
+                String namespace = evictionMetadata.getNamespace();
 
-            if (eviction.getMetadata() != null
-                    && matchingPattern.matcher(eviction.getMetadata().getName()).matches()) {
-                String name = eviction.getMetadata().getName();
-                String namespace = eviction.getMetadata().getNamespace();
-
-                if (namespace == null)  {
+                if (namespace == null) {
                     // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
                     // request without the namespace. In such case, we use the namespace form the AdmissionRequest.
                     LOG.warn("There is no namespace in the Eviction request - trying to use namespace of the Admission request");
                     namespace = request.getNamespace();
                 }
 
-                if (name == null || namespace == null)  {
+                if (name == null || namespace == null) {
                     LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
                 } else {
                     LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
