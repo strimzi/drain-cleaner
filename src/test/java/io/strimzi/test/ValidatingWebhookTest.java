@@ -72,6 +72,38 @@ public class ValidatingWebhookTest {
     }
 
     @Test
+    public void testV1Beta1Eviction() {
+        String podName = "my-cluster-kafka-1";
+
+        AdmissionRequest admissionRequest = new AdmissionRequest();
+        admissionRequest.setObject(new io.fabric8.kubernetes.api.model.policy.v1beta1.EvictionBuilder()
+                .withNewMetadata()
+                    .withName(podName)
+                    .withNamespace("my-namespace")
+                .endMetadata()
+                .build());
+        admissionRequest.setDryRun(false);
+        admissionRequest.setUid("SOME-UUID");
+
+        AdmissionReview admissionReview =  new AdmissionReviewBuilder()
+                .withRequest(admissionRequest)
+                .build();
+
+        when(podResource.get()).thenReturn(mockedPod(podName, true, false));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        AdmissionReview reviewResponse = webhook.webhook(admissionReview);
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
     public void testEvictionOnPodWithoutAnnotations() {
         String podName = "my-cluster-kafka-1";
         Pod mockedPod = mockedPod(podName, true, false);
