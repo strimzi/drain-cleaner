@@ -23,7 +23,6 @@
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
     <quarkus.platform.version>2.11.1.Final</quarkus.platform.version>
-    <quarkus.test.version>2.11.1.Final</quarkus.test.version>
     
     <!-- Other versions -->
     <log4j.version>2.17.1</log4j.version>
@@ -37,46 +36,6 @@
         <version>${quarkus.platform.version}</version>
         <type>pom</type>
         <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-arc</artifactId>
-        <version>${quarkus.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-picocli</artifactId>
-        <version>${quarkus.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-kubernetes-client</artifactId>
-        <version>${quarkus.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-resteasy</artifactId>
-        <version>${quarkus.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-mutiny</artifactId>
-        <version>${quarkus.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-resteasy-jackson</artifactId>
-        <version>${quarkus.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-junit5-mockito</artifactId>
-        <version>${quarkus.test.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-junit5</artifactId>
-        <version>${quarkus.test.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
