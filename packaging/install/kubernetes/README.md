@@ -89,3 +89,8 @@ If you generated your certificates in a different way or on a different path, yo
    ```
    kubectl apply -f ./
    ```
+
+## Certificate renewals
+
+Users are responsible for renewing the certificates before they expire.
+The certificates can be renewed by just repeating the whole process and applying the updated YAML files.
