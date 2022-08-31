@@ -18,7 +18,7 @@ webhooks:
         name: "strimzi-drain-cleaner"
         path: /drainer
         port: 443
-      caBundle: Cg== # Needs to be updated with the generated certificate
+      caBundle: Cg== # Add the generated certificate here
     admissionReviewVersions: ["v1"]
     sideEffects: None
     failurePolicy: Ignore
