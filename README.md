@@ -5,7 +5,7 @@
 
 # Strimzi Drain Cleaner
 
-Strimzi Drain Cleaner is an utility which helps with moving the [Apache Kafka®](https://kafka.apache.org) pods deployed by [Strimzi](https://strimzi.io/) from Kubernetes nodes which are being drained.
+Strimzi Drain Cleaner is a utility which helps with moving the [Apache Kafka®](https://kafka.apache.org) pods deployed by [Strimzi](https://strimzi.io/) from Kubernetes nodes which are being drained.
 It is useful if you want the Strimzi operator to move the pods instead of Kubernetes itself.
 The advantage of this approach is that the Strimzi operator makes sure that no partition replicas become under-replicated during the node draining.
 To use it:
@@ -95,7 +95,7 @@ kubectl apply -f ./install/certmanager
 ### On Kubernetes without CertManager
 
 On Kubernetes, when you do not use Cert Manager, the certificates needed for the web-hook need to be generated manually.
-Follow the instructions in `./install/kubernetes` directory.
+Follow the instructions in the `./install/kubernetes` directory to generate and install the certificates.
 
 ## See it in action
 
