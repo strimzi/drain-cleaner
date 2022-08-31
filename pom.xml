@@ -19,13 +19,13 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     
     <!-- Quarkus -->
-    <quarkus-plugin.version>2.11.1.Final</quarkus-plugin.version>
+    <quarkus-plugin.version>2.11.3.Final</quarkus-plugin.version>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.version>2.11.1.Final</quarkus.platform.version>
+    <quarkus.platform.version>2.11.3.Final</quarkus.platform.version>
     
     <!-- Other versions -->
-    <log4j.version>2.17.1</log4j.version>
+    <log4j.version>2.17.2</log4j.version>
     <jayway-jsonpath.version>2.6.0</jayway-jsonpath.version>
     <bouncycastle.version>1.68</bouncycastle.version>
   </properties>
@@ -41,10 +41,6 @@
     </dependencies>
   </dependencyManagement>
   <dependencies>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-picocli</artifactId>
-    </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-kubernetes-client</artifactId>

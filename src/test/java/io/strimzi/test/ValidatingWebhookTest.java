@@ -22,7 +22,6 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,7 +60,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -93,7 +92,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(admissionReview);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -113,7 +112,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -134,7 +133,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -154,7 +153,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -166,12 +165,33 @@ public class ValidatingWebhookTest {
     @Test
     public void testDryRun() {
         String podName = "my-cluster-kafka-1";
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, true));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
+        verify(podResource, never()).patch((Pod) any());
+    }
+
+    @Test
+    public void testKafkaAndZooKeeperFilters() {
+        ValidatingWebhook webhook = new ValidatingWebhook(client, false, false);
+
+        // Test it for Kafka
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest("my-cluster-kafka-1", true));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, never()).get();
+        verify(podResource, never()).patch((Pod) any());
+
+        // Test it for ZooKeeper
+        reviewResponse = webhook.webhook(reviewRequest("my-cluster-zookeeper-1", true));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, never()).get();
         verify(podResource, never()).patch((Pod) any());
     }
 
@@ -182,7 +202,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -196,7 +216,7 @@ public class ValidatingWebhookTest {
         String podName = "my-cluster-kafka-1";
         when(podResource.get()).thenReturn(null);
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -212,7 +232,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -243,7 +263,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(request);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -274,7 +294,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, Pattern.compile(".+(-kafka-|-zookeeper-)[0-9]+"));
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
         AdmissionReview reviewResponse = webhook.webhook(request);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));

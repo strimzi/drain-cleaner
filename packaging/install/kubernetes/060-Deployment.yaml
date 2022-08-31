@@ -24,11 +24,13 @@ spec:
               name: http
             - containerPort: 8443
               name: https
-          command:
-            - "/application"
-            - "-Dquarkus.http.host=0.0.0.0"
-            - "--kafka"
-            - "--zookeeper"
+          env:
+            - name: STRIMZI_DRAIN_KAFKA
+              value: "true"
+            - name: STRIMZI_DRAIN_ZOOKEEPER
+              value: "true"
+          args:
+            - /opt/strimzi/bin/drain_cleaner_run.sh
           volumeMounts:
             - name: webhook-certificates
               mountPath: "/etc/webhook-certificates"

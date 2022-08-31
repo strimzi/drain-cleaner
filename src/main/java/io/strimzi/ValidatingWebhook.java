@@ -11,10 +11,10 @@ import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReviewBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.Eviction;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.Dependent;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
@@ -25,25 +25,32 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-@Dependent
 @Path("/drainer")
 public class ValidatingWebhook {
     private static final Logger LOG = LoggerFactory.getLogger(ValidatingWebhook.class);
 
+    private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile(".+(-zookeeper-)[0-9]+");
+    private static final Pattern KAFKA_PATTERN = Pattern.compile(".+(-kafka-)[0-9]+");
+
+    @ConfigProperty(name = "strimzi.drain.kafka")
+    boolean drainKafka;
+
+    @ConfigProperty(name = "strimzi.drain.zookeeper")
+    boolean drainZooKeeper;
+
     @Inject
     KubernetesClient client;
 
-    @Inject
-    Pattern matchingPattern;
-
     // Default constructor => used in production
+    @SuppressWarnings("unused")
     public ValidatingWebhook() {
     }
 
     // Parametrized constructor => used in tests
-    public ValidatingWebhook(KubernetesClient client, Pattern matchingPattern) {
+    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper) {
         this.client = client;
-        this.matchingPattern = matchingPattern;
+        this.drainZooKeeper = drainZooKeeper;
+        this.drainKafka = drainKafka;
     }
 
     private ObjectMeta extractEvictionMetadata(AdmissionRequest request)    {
@@ -70,7 +77,8 @@ public class ValidatingWebhook {
         ObjectMeta evictionMetadata = extractEvictionMetadata(request);
 
         if (evictionMetadata != null)   {
-            if (matchingPattern.matcher(evictionMetadata.getName()).matches()) {
+            if (drainZooKeeper && ZOOKEEPER_PATTERN.matcher(evictionMetadata.getName()).matches()
+                    || drainKafka && KAFKA_PATTERN.matcher(evictionMetadata.getName()).matches()) {
                 String name = evictionMetadata.getName();
                 String namespace = evictionMetadata.getNamespace();
 

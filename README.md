@@ -72,7 +72,8 @@ Strimzi will roll it in the next reconciliation using its algorithms which make 
 
 ## Deployment
 
-If you want to use this only to Kafka and not to ZooKeeper, you can edit the Deployment and remove the `--zookeeper` option.
+By default, the Drain cleaner will drain both Kafka and ZooKeeper pods. 
+If you want to use this only to one of them, you can edit the Deployment set the `STRIMZI_DRAIN_KAFKA` or `STRIMZI_DRAIN_ZOOKEEPER` environment variables to `false`.
 
 ### On OpenShift
 
