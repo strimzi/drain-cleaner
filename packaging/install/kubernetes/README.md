@@ -19,25 +19,23 @@ The steps below have been tested with OpenSSL 1.1.1 and should work on Linux, Ma
    cd tls-certificate
    ```
 2) Generate a CA public certificate and private key in the `tls-certificate` directory:
-    ```
-    openssl req -nodes -new -x509 -keyout ca.key -out ca.crt -subj "/CN=Strimzi Drain Cleaner CA"
-    ```
-    
+   ```
+   openssl req -nodes -new -x509 -keyout ca.key -out ca.crt -subj "/CN=Strimzi Drain Cleaner CA"
+   ```
    A `ca.crt` and `ca.key` file is created. 
 3) Generate the private TLS key for the Strimzi Drain Cleaner:
-    ```
-    openssl genrsa -out tls.key 2048
-    ```
-    
-    A `tls.key` file is created.
+   ```
+   openssl genrsa -out tls.key 2048
+   ```
+   A `tls.key` file is created.
 4) Generate a Certificate Signing Request and sign it by adding the CA public certificate (`ca.crt`) you generated:
    ```
    openssl req -new -key tls.key -subj "/CN=strimzi-drain-cleaner.strimzi-drain-cleaner.svc" \
         | openssl x509 -req -CA ca.crt -CAkey ca.key -CAcreateserial -extfile <(printf "subjectAltName=DNS:strimzi-drain-cleaner.strimzi-drain-cleaner.svc") -out tls.crt
-    ```
-    A `tls.crt` file is created.
-   If you plan to change the name of the Strimzi Drain Cleaner service or install it into a different namespace, you have to change the common name (CN) of the certificate.
-   The CN must follow the pattern `<SERVICE_NAME>.<NAMESPACE_NAME>.svc`.
+   ```
+   A `tls.crt` file is created.
+   If you plan to change the name of the Strimzi Drain Cleaner service or install it into a different namespace, you have to change the Subject Alternative Name (SAN) of the certificate.
+   The SAN must follow the pattern `<SERVICE_NAME>.<NAMESPACE_NAME>.svc`.
 5) The `tls-certificate` directory should now contain several certificate files which we will use in the installation files.
    You can exit the `tls-certificate` directory now.
    ```
@@ -72,13 +70,12 @@ If you generated your certificates in a different way or on a different path, yo
    kubectl create ns strimzi-drain-cleaner
    ```
 3) Use `kubectl` to create a secret named `strimzi-drain-cleaner` with the `tls.crt` and `tls.key` files you generated:
-   
-     ```
+   ```
    kubectl create secret tls strimzi-drain-cleaner \
        -n strimzi-drain-cleaner  \
        --cert=tls-certificate/tls.crt \
        --key=tls-certificate/tls.key
-    ```
+   ```
    This secret is used by the Strimzi Drain Cleaner deployment.
    The resulting Secret should look similar to this:
    ```yaml
