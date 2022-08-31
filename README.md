@@ -95,7 +95,7 @@ kubectl apply -f ./install/certmanager
 ### On Kubernetes without CertManager
 
 On Kubernetes, when you do not use Cert Manager, the certificates needed for the web-hook need to be generated manually.
-Follow the instructions in `./install/kubernetes` directory to generate and install the certificates.
+Follow the instructions in the `./install/kubernetes` directory to generate and install the certificates.
 
 ## See it in action
 
