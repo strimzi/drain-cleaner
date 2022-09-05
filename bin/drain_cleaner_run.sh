@@ -15,4 +15,4 @@ fi
 
 # Start Drain Cleaner
 #exec /usr/bin/tini -s -w -e 143 -- java $JAVA_OPTS -classpath "$JAVA_CLASSPATH" "$JAVA_MAIN" "$@"
-exec /usr/bin/tini -s -w -e 143 -- java $JAVA_OPTS -jar /opt/strimzi//quarkus-run.jar "$@"
+exec /usr/bin/tini -s -w -e 143 -- java $JAVA_OPTS -jar /opt/strimzi/quarkus-run.jar "$@"

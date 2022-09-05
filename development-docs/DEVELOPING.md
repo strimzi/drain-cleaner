@@ -21,7 +21,7 @@ Once you have Java and Maven installed, you can run to build the project
 mvn package
 ```
 
-### Creating a native executable using Make
+### Building the Java code using Make
 
 You can also build the Java project with Make.
 Make will still call Maven and Java, so you need to have them installed when using Make as well.
