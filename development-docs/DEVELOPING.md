@@ -16,7 +16,7 @@ mvn compile quarkus:dev
 ### Building the Java code with Maven
 
 You can build the project using Maven.
-Once you have Java and Maven installed, you can run to build the project  
+With Java and Maven installed, you can run Maven to build the project.
 ```shell script
 mvn package
 ```
