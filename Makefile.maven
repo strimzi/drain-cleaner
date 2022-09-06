@@ -9,17 +9,17 @@ java_compile:
 .PHONY: java_verify
 java_verify:
 	echo "Building JAR file ..."
-	mvn $(MVN_ARGS) -Pnative $(NATIVE_DOCKER_BUILD) verify
+	mvn $(MVN_ARGS) verify
 
 .PHONY: java_package
 java_package:
 	echo "Packaging project ..."
-	mvn $(MVN_ARGS) -Pnative $(NATIVE_DOCKER_BUILD) package
+	mvn $(MVN_ARGS) package
 
 .PHONY: java_install
 java_install:
 	echo "Installing JAR files ..."
-	mvn $(MVN_ARGS) -Pnative $(NATIVE_DOCKER_BUILD) install
+	mvn $(MVN_ARGS) install
 
 .PHONY: java_clean
 java_clean:

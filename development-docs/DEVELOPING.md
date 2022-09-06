@@ -13,37 +13,26 @@ You can run the application in dev mode that enables live coding using:
 mvn compile quarkus:dev
 ```
 
-### Creating a native executable using Maven
+### Building the Java code with Maven
 
-If you have [GraalVM](https://www.graalvm.org/) installed locally, you can create a native executable using: 
+You can build the project using Maven.
+With Java and Maven installed, you can run Maven to build the project.
 ```shell script
-mvn package -Pnative
+mvn package
 ```
 
-Or you can run the native executable build for Linux in a container using: 
-```shell script
-mvn package -Pnative -Dquarkus.native.container-build=true
-```
+### Building the Java code using Make
 
-This is useful especially when running on other operating systems such as macOS or when you don't have GraalVM installed.
-
-You can then execute your native executable with: `./target/strimzi-drain-cleaner-1.0.0-SNAPSHOT-runner`.
-
-### Creating a native executable using Make
-
-If you have [GraalVM](https://www.graalvm.org/) installed locally, you can create a native executable using: 
+You can also build the Java project with Make.
+Make will still call Maven and Java, so you need to have them installed when using Make as well.
 ```shell script
 make java_package
 ```
 
-Or you can run the native executable build for Linux in a container using: 
+You can pass additional arguments to the Maven build by setting the `MVN_ARGS` environment variable: 
 ```shell script
-MVN_ARGS=-Dquarkus.native.container-build=true make java_package
+MVN_ARGS=-B make java_package
 ```
-
-This is useful especially when running on other operating systems such as macOS or when you don't have GraalVM installed.
-
-You can then execute your native executable with: `./target/strimzi-drain-cleaner-1.0.0-SNAPSHOT-runner`.
 
 ### Building a container image manually
 
