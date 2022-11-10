@@ -13,7 +13,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
-import io.fabric8.kubernetes.client.internal.readiness.Readiness;
+import io.fabric8.kubernetes.client.readiness.Readiness;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import io.strimzi.utils.k8s.exception.WaitException;
@@ -134,7 +134,7 @@ public final class StUtils {
         int replicas = statefulSet.getSpec().getReplicas();
 
         LOGGER.info("Creating StatefulSet: {} in namespace: {}", stsName, namespaceName);
-        kubeClient().getClient().apps().statefulSets().inNamespace(namespaceName).create(statefulSet);
+        kubeClient().getClient().apps().statefulSets().inNamespace(namespaceName).resource(statefulSet).create();
 
         LOGGER.info("Waiting for StatefulSet to be ready");
         waitFor("StatefulSet to be created and ready", GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
@@ -150,7 +150,7 @@ public final class StUtils {
         String pdbName = podDisruptionBudget.getMetadata().getName();
 
         LOGGER.info("Creating PodDisruptionBudget: {} in namespace: {}", pdbName, namespaceName);
-        kubeClient().getClient().policy().v1().podDisruptionBudget().inNamespace(namespaceName).create(podDisruptionBudget);
+        kubeClient().getClient().policy().v1().podDisruptionBudget().inNamespace(namespaceName).resource(podDisruptionBudget).create();
 
         LOGGER.info("Waiting for PodDisruptionBudget to be ready");
         waitFor("PodDisruptionBudget to be created and ready", GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
