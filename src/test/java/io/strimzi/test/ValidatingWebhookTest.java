@@ -36,9 +36,9 @@ import static org.mockito.Mockito.when;
 
 public class ValidatingWebhookTest {
     KubernetesClient client;
-    MixedOperation<Pod, PodList, PodResource<Pod>> pods;
-    NonNamespaceOperation<Pod, PodList, PodResource<Pod>> inNamespace;
-    PodResource<Pod> podResource;
+    MixedOperation<Pod, PodList, PodResource> pods;
+    NonNamespaceOperation<Pod, PodList, PodResource> inNamespace;
+    PodResource podResource;
 
     @SuppressWarnings("unchecked")
     @BeforeEach

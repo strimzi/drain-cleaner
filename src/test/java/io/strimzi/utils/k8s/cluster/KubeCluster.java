@@ -5,7 +5,7 @@
 package io.strimzi.utils.k8s.cluster;
 
 import io.fabric8.kubernetes.client.Config;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.strimzi.utils.k8s.KubeClient;
 import io.strimzi.utils.k8s.exception.NoClusterException;
 import io.strimzi.utils.k8s.cmdClient.KubeCmdClient;
@@ -29,7 +29,7 @@ public interface KubeCluster {
     KubeCmdClient defaultCmdClient();
 
     default KubeClient defaultClient() {
-        return new KubeClient(new DefaultKubernetesClient(), "default");
+        return new KubeClient(new KubernetesClientBuilder().build(), "default");
     }
 
     /**

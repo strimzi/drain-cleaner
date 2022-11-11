@@ -118,7 +118,7 @@ public class KubeClient {
     // ================================
 
     public Deployment createOrReplaceDeployment(Deployment deployment) {
-        return client.apps().deployments().inNamespace(deployment.getMetadata().getNamespace()).createOrReplace(deployment);
+        return client.apps().deployments().inNamespace(deployment.getMetadata().getNamespace()).resource(deployment).createOrReplace();
     }
 
     /**

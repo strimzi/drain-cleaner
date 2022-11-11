@@ -54,13 +54,11 @@ public class ValidatingWebhook {
     }
 
     private ObjectMeta extractEvictionMetadata(AdmissionRequest request)    {
-        if (request.getObject() instanceof Eviction) {
+        if (request.getObject() instanceof Eviction eviction) {
             LOG.debug("Received Eviction request of version v1");
-            Eviction eviction = (Eviction) request.getObject();
             return eviction.getMetadata();
-        } else if (request.getObject() instanceof io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction) {
+        } else if (request.getObject() instanceof io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction eviction) {
             LOG.debug("Received Eviction request of version v1beta1");
-            io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction eviction = (io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction) request.getObject();
             return eviction.getMetadata();
         } else {
             return null;
