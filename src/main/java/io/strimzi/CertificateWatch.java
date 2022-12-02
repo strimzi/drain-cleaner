@@ -48,7 +48,7 @@ public class CertificateWatch {
             try {
                 String path = ConfigProvider.getConfig().getOptionalValue("certificate.watch.path", String.class).orElse("/etc/webhook-certificates/");
 
-                LOG.error("Creating certificate watch for path {}", path);
+                LOG.info("Creating certificate watch for path {}", path);
 
                 this.watcher = new ChangeWatcher(path, () -> {
                     LOG.info("Certificate change detected => Drain Cleaner will be restarted");
