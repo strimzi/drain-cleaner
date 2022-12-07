@@ -20,6 +20,7 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Quarkus loads the TLS certificate at startup but does not reload it when it changes. So if the Drain Cleaner runs for
@@ -33,6 +34,7 @@ import java.nio.file.WatchService;
 @ApplicationScoped
 public class CertificateWatch {
     private static final Logger LOG = LoggerFactory.getLogger(CertificateWatch.class);
+    private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
     private final boolean enabled;
 
@@ -51,7 +53,7 @@ public class CertificateWatch {
                 LOG.info("Creating certificate watch for path {}", path);
 
                 this.watcher = new ChangeWatcher(path, () -> {
-                    LOG.info("Certificate change detected => Drain Cleaner will be restarted");
+                    LOG.info("Certificate change detected => Drain Cleaner process will exit");
                     Quarkus.asyncExit(0);
                 });
             } catch (IOException e) {
@@ -68,8 +70,13 @@ public class CertificateWatch {
      */
     void onStart(@Observes StartupEvent ev) {
         if (enabled) {
-            LOG.info("Starting certificate watch");
-            watcher.start();
+            if (RUNNING.get())  {
+                LOG.warn("Certificate watch is already running and cannot be started twice");
+            } else {
+                LOG.info("Starting certificate watch");
+                watcher.start();
+                RUNNING.set(true);
+            }
         } else {
             LOG.info("Certificate watch is not enabled");
         }
@@ -82,11 +89,16 @@ public class CertificateWatch {
      */
     void onStop(@Observes ShutdownEvent ev) {
         if (enabled) {
-            LOG.info("Stopping certificate watch");
-            try {
-                watcher.stop();
-            } catch (InterruptedException e) {
-                LOG.warn("Failed to stop the certificate watcher", e);
+            if (RUNNING.get()) {
+                LOG.info("Stopping certificate watch");
+                try {
+                    watcher.stop();
+                    RUNNING.set(false);
+                } catch (InterruptedException e) {
+                    LOG.warn("Failed to stop the certificate watcher", e);
+                }
+            } else {
+                LOG.warn("Certificate watch is not running yet and cannot be stopped");
             }
         }
     }
@@ -95,10 +107,10 @@ public class CertificateWatch {
      * Internal class which does the watching of a directory for changes using the Java NIO Watch service. If any change
      * is detected, a handler is called to take the action.
      */
-    public static class ChangeWatcher implements Runnable {
+    static class ChangeWatcher implements Runnable {
         private final WatchService watchService;
         private final Thread watcherThread;
-        private final Runnable changeHandler;
+        private final CertificateChangeHandler changeHandler;
 
         private volatile boolean stop = false;
 
@@ -111,7 +123,7 @@ public class CertificateWatch {
          *
          * @throws IOException  IOException is thrown if we fail to create the Watch service
          */
-        public ChangeWatcher(String path, Runnable handler) throws IOException {
+        public ChangeWatcher(String path, CertificateChangeHandler handler) throws IOException {
             LOG.info("Creating ChangeWatcher for path {}", path);
             this.watchService = FileSystems.getDefault().newWatchService();
             this.watcherThread = new Thread(this, "certificate-change-watch");
@@ -136,7 +148,7 @@ public class CertificateWatch {
                     if (key != null) {
                         for (WatchEvent<?> event : key.pollEvents()) {
                             LOG.warn("Certificate {} changed ({})", event.context(), event.kind().name());
-                            changeHandler.run();
+                            changeHandler.onChange();
                         }
                         key.reset();
                     }
@@ -164,5 +176,16 @@ public class CertificateWatch {
                 LOG.warn("Failed to stop the Java watch service", e);
             }
         }
+    }
+
+    /**
+     * Functional interface for passing and handler which is called when the file changes
+     */
+    @FunctionalInterface
+    interface CertificateChangeHandler {
+        /**
+         * The onChange method is called when the watched files changed
+         */
+        void onChange();
     }
 }
