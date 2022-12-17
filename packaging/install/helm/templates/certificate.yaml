@@ -1,0 +1,18 @@
+{{- if .Values.certManager.create -}}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: strimzi-drain-cleaner
+  labels:
+    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+  namespace: {{.Release.Namespace}}
+spec:
+  secretName: strimzi-drain-cleaner
+  commonName: strimzi-drain-cleaner
+  dnsNames:
+  - {{ include "strimzi-drain-cleaner.name" . }}.{{ .Values.namespace.name }}.svc
+  - {{ include "strimzi-drain-cleaner.name" . }}.{{ .Values.namespace.name }}
+  - strimzi-drain-cleaner
+  issuerRef:
+    name: strimzi-drain-cleaner
+{{- end }}

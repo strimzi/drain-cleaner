@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strimzi-drain-cleaner
+  labels:
+    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+  namespace: {{.Release.Namespace}}
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      {{- include "strimzi-drain-cleaner.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "strimzi-drain-cleaner.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
+      containers:
+        - name: strimzi-drain-cleaner
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 8443
+              name: https
+          command:
+            {{- toYaml .Values.command | nindent 12 }}
+          volumeMounts:
+            - name: webhook-certificates
+              mountPath: "/etc/webhook-certificates"
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: webhook-certificates
+          secret:
+            secretName: strimzi-drain-cleaner
+  strategy:
+    type: RollingUpdate

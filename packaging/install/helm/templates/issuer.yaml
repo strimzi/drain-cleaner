@@ -1,0 +1,11 @@
+{{- if .Values.certManager.create -}}
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: strimzi-drain-cleaner
+  labels:
+    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+  namespace: {{.Release.Namespace}}
+spec:
+  selfSigned: {}
+{{- end }}

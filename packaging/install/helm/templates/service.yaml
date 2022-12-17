@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: strimzi-drain-cleaner
+  labels:
+    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+  namespace: {{.Release.Namespace}}
+spec:
+  ports:
+    - port: 80
+      name: http
+      protocol: TCP
+      targetPort: 8080
+    - port: 443
+      name: https
+      protocol: TCP
+      targetPort: 8443
+  selector:
+    {{- include "strimzi-drain-cleaner.selectorLabels" . | nindent 4 }}
