@@ -5,11 +5,16 @@ replicaCount: 1
 nameOverride: ""
 fullnameOverride: ""
 
+defaultImageRegistry: quay.io
+defaultImageRepository: strimzi
+defaultImageTag: latest
+
 image:
-  repository: quay.io/strimzi/drain-cleaner
+  registry: ""
+  repository: ""
+  name: drain-cleaner
+  tag: ""
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
-  # tag: "main"
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -25,14 +30,11 @@ certManager:
   create: true
 
 namespace:
-  create: false
-  name: kafka
+  create: true
+  name: strimzi-drain-cleaner
 
-command:
-  - "/application"
-  - "-Dquarkus.http.host=0.0.0.0"
-  - "--kafka"
-  - "--zookeeper"
+args:
+  - /opt/strimzi/bin/drain_cleaner_run.sh
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -53,3 +55,9 @@ tolerations: []
 topologySpreadConstraints: []
 
 affinity: {}
+
+env:
+  - name: STRIMZI_DRAIN_KAFKA
+    value: "true"
+  - name: STRIMZI_DRAIN_ZOOKEEPER
+    value: "true"

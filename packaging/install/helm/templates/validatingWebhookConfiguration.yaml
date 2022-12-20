@@ -16,7 +16,7 @@ webhooks:
         scope:       "Namespaced"
     clientConfig:
       service:
-        namespace: {{.Release.Namespace}}
+        namespace: {{default .Release.Namespace .Values.namespace.name }}
         name: "strimzi-drain-cleaner"
         path: /drainer
         port: 443

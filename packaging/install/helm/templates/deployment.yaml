@@ -4,7 +4,7 @@ metadata:
   name: strimzi-drain-cleaner
   labels:
     {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
-  namespace: {{.Release.Namespace}}
+  namespace: {{default .Release.Namespace .Values.namespace.name }}
 spec:
   replicas: {{ .Values.replicaCount | default 1 }}
   selector:
@@ -18,15 +18,21 @@ spec:
       serviceAccountName: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
       containers:
         - name: strimzi-drain-cleaner
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          image: {{ default .Values.defaultImageRegistry .Values.image.registry }}/{{ default .Values.defaultImageRepository .Values.image.repository}}/{{ .Values.image.name }}:{{ default .Values.defaultImageTag .Values.image.tag }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 8080
               name: http
             - containerPort: 8443
               name: https
-          command:
-            {{- toYaml .Values.command | nindent 12 }}
+          {{- with .Values.env }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
             - name: webhook-certificates
               mountPath: "/etc/webhook-certificates"
