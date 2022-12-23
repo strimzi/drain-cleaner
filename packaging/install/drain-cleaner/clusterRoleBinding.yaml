@@ -1,0 +1,18 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: release-name-strimzi-drain-cleaner
+  labels:
+    helm.sh/chart: strimzi-drain-cleaner-0.0.3
+    app.kubernetes.io/name: strimzi-drain-cleaner
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.3.1"
+    app.kubernetes.io/managed-by: Helm
+subjects:
+  - kind: ServiceAccount
+    name: release-name-strimzi-drain-cleaner
+    namespace: strimzi-drain-cleaner
+roleRef:
+  kind: ClusterRole
+  name: release-name-strimzi-drain-cleaner
+  apiGroup: rbac.authorization.k8s.io

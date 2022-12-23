@@ -1,0 +1,29 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: strimzi-drain-cleaner
+  labels:
+    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+  annotations:
+    cert-manager.io/inject-ca-from: {{ .Values.namespace.name }}/strimzi-drain-cleaner
+webhooks:
+  - name: strimzi-drain-cleaner.strimzi.io
+    rules:
+      - apiGroups:   [""]
+        apiVersions: ["v1"]
+        operations:  ["CREATE"]
+        resources:   ["pods/eviction"]
+        scope:       "Namespaced"
+    clientConfig:
+      service:
+        namespace: {{default .Release.Namespace .Values.namespace.name }}
+        name: "strimzi-drain-cleaner"
+        path: /drainer
+        port: 443
+      {{- if .Values.secret.ca_bundle }}
+      caBundle: {{ .Values.secret.ca_bundle }}
+      {{- end }}
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    failurePolicy: Ignore
+    timeoutSeconds: 5

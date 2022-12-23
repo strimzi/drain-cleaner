@@ -3,20 +3,24 @@ kind: ValidatingWebhookConfiguration
 metadata:
   name: strimzi-drain-cleaner
   labels:
-    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+    helm.sh/chart: strimzi-drain-cleaner-0.0.3
+    app.kubernetes.io/name: strimzi-drain-cleaner
+    app.kubernetes.io/instance: release-name
+    app.kubernetes.io/version: "0.3.1"
+    app.kubernetes.io/managed-by: Helm
   annotations:
-    cert-manager.io/inject-ca-from: {{ .Values.namespace.name }}/strimzi-drain-cleaner
+    cert-manager.io/inject-ca-from: strimzi-drain-cleaner/strimzi-drain-cleaner
 webhooks:
   - name: strimzi-drain-cleaner.strimzi.io
     rules:
-      - apiGroups:   [""]
+      - apiGroups: [""]
         apiVersions: ["v1"]
-        operations:  ["CREATE"]
-        resources:   ["pods/eviction"]
-        scope:       "Namespaced"
+        operations: ["CREATE"]
+        resources: ["pods/eviction"]
+        scope: "Namespaced"
     clientConfig:
       service:
-        namespace: {{default .Release.Namespace .Values.namespace.name }}
+        namespace: strimzi-drain-cleaner
         name: "strimzi-drain-cleaner"
         path: /drainer
         port: 443

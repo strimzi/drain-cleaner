@@ -29,6 +29,12 @@ serviceAccount:
 certManager:
   create: true
 
+secret:
+  create: false
+  tls_crt: "Cg=="
+  tls_key: "Cg=="
+  ca_bundle: "Cg=="
+
 namespace:
   create: true
   name: strimzi-drain-cleaner
