@@ -3,22 +3,25 @@ kind: Deployment
 metadata:
   name: strimzi-drain-cleaner
   labels:
-    app: strimzi-drain-cleaner
+    app.kubernetes.io/name: strimzi-drain-cleaner
   namespace: strimzi-drain-cleaner
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: strimzi-drain-cleaner
+      app.kubernetes.io/name: strimzi-drain-cleaner
+      app.kubernetes.io/instance: strimzi-drain-cleaner
   template:
     metadata:
       labels:
-        app: strimzi-drain-cleaner
+        app.kubernetes.io/name: strimzi-drain-cleaner
+        app.kubernetes.io/instance: strimzi-drain-cleaner
     spec:
       serviceAccountName: strimzi-drain-cleaner
       containers:
         - name: strimzi-drain-cleaner
           image: quay.io/strimzi/drain-cleaner:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
               name: http

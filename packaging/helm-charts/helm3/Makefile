@@ -7,7 +7,7 @@ CHART_SEMANTIC_RELEASE_VERSION ?= $(shell cat ../../../release.version | tr A-Z 
 CHART_NAME=strimzi-drain-cleaner
 CHART_PATH ?= ../helm3/strimzi-drain-cleaner/
 CHART_RENDERED_TEMPLATES_TMP=../../../target/charts
-CHART_RENDERED_TEMPLATES_INSTALL=../../install/drain-cleaner/
+CHART_RENDERED_TEMPLATES_INSTALL=../../install/certmanager/
 HELM_CLI=helm
 
 helm_clean:
@@ -22,17 +22,16 @@ helm_lint:
 helm_template:
 	# Generating rendered template files to: $(CHART_RENDERED_TEMPLATES_TMP)
 	mkdir -p $(CHART_RENDERED_TEMPLATES_TMP)
-	$(HELM_CLI) template --namespace myproject --output-dir $(CHART_RENDERED_TEMPLATES_TMP) $(CHART_PATH)
+	$(HELM_CLI) template strimzi-drain-cleaner --namespace myproject --output-dir $(CHART_RENDERED_TEMPLATES_TMP) $(CHART_PATH)
 
 helm_install: helm_clean helm_template
 	# Remove Helm-related labels
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec $(SED) -i '/^---/d' {} \;
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec $(SED) -i '/^# Source: /d' {} \;
-	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels.helm\.sh/chart' {} \;
-	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels.component' {}  \;
-	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels.release' {} \;
-	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels.heritage' {} \;
-	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.namespace' {} \;
+	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."helm.sh/chart"' {} \;
+	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."app.kubernetes.io/instance"' {}  \;
+	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."app.kubernetes.io/version"' {} \;
+	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."app.kubernetes.io/managed-by"' {} \;
 	# Copying rendered template files to: $(CHART_RENDERED_TEMPLATES_INSTALL)
 	mkdir -p $(CHART_RENDERED_TEMPLATES_INSTALL)
 	# Find rendered resources which are not CustomResourceDefinition and move them
