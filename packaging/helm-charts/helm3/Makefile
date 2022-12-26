@@ -29,15 +29,14 @@ helm_install: helm_clean helm_template
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec $(SED) -i '/^---/d' {} \;
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec $(SED) -i '/^# Source: /d' {} \;
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."helm.sh/chart"' {} \;
+	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."app.kubernetes.io/name"' {}  \;
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."app.kubernetes.io/instance"' {}  \;
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."app.kubernetes.io/version"' {} \;
 	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -exec yq eval -i 'del .metadata.labels."app.kubernetes.io/managed-by"' {} \;
 	# Copying rendered template files to: $(CHART_RENDERED_TEMPLATES_INSTALL)
 	mkdir -p $(CHART_RENDERED_TEMPLATES_INSTALL)
 	# Find rendered resources which are not CustomResourceDefinition and move them
-	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' -printf "%p " -exec yq eval '.kind' {} \; \
-	| grep -v 'CustomResourceDefinition$$' \
-	| $(SED) -E 's/([^ ]*) ([a-zA-Z0-9]*)$$/\1/' \
+	$(FIND) $(CHART_RENDERED_TEMPLATES_TMP) -type f -name '*.yaml' \
 	| xargs -IFILE $(CP) FILE $(CHART_RENDERED_TEMPLATES_INSTALL)
 
 helm_pkg: helm_lint helm_install

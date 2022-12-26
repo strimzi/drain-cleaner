@@ -3,19 +3,17 @@ kind: Deployment
 metadata:
   name: strimzi-drain-cleaner
   labels:
-    app.kubernetes.io/name: strimzi-drain-cleaner
+    app: strimzi-drain-cleaner
   namespace: strimzi-drain-cleaner
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: strimzi-drain-cleaner
-      app.kubernetes.io/instance: strimzi-drain-cleaner
+      app: strimzi-drain-cleaner
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: strimzi-drain-cleaner
-        app.kubernetes.io/instance: strimzi-drain-cleaner
+        app: strimzi-drain-cleaner
     spec:
       serviceAccountName: strimzi-drain-cleaner
       containers:

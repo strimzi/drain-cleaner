@@ -3,7 +3,7 @@ kind: ClusterRoleBinding
 metadata:
   name: strimzi-drain-cleaner
   labels:
-    app.kubernetes.io/name: strimzi-drain-cleaner
+    app: strimzi-drain-cleaner
 subjects:
   - kind: ServiceAccount
     name: strimzi-drain-cleaner

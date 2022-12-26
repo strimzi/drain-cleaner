@@ -40,14 +40,15 @@ helm.sh/chart: {{ include "strimzi-drain-cleaner.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/name: {{ include "strimzi-drain-cleaner.name" . }}
+app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Selector labels
 */}}
 {{- define "strimzi-drain-cleaner.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "strimzi-drain-cleaner.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app: {{ include "strimzi-drain-cleaner.name" . }}
 {{- end }}
 
 {{/*

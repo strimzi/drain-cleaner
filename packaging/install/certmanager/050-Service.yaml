@@ -3,7 +3,7 @@ apiVersion: v1
 metadata:
   name: strimzi-drain-cleaner
   labels:
-    app.kubernetes.io/name: strimzi-drain-cleaner
+    app: strimzi-drain-cleaner
   namespace: strimzi-drain-cleaner
 spec:
   ports:
@@ -16,5 +16,4 @@ spec:
       protocol: TCP
       targetPort: 8443
   selector:
-    app.kubernetes.io/name: strimzi-drain-cleaner
-    app.kubernetes.io/instance: strimzi-drain-cleaner
+    app: strimzi-drain-cleaner
