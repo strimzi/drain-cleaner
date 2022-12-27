@@ -1,0 +1,69 @@
+# Default values for strimzi-drain-cleaner.
+
+replicaCount: 1
+
+nameOverride: ""
+fullnameOverride: ""
+
+defaultImageRegistry: quay.io
+defaultImageRepository: strimzi
+defaultImageTag: latest
+
+image:
+  registry: ""
+  repository: ""
+  name: drain-cleaner
+  tag: ""
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# Whether the Certificate and Issuer custom resources should be created
+certManager:
+  create: true
+
+secret:
+  create: false
+  tls_crt: "Cg=="
+  tls_key: "Cg=="
+  ca_bundle: "Cg=="
+
+namespace:
+  create: true
+  name: strimzi-drain-cleaner
+
+args:
+  - /opt/strimzi/bin/drain_cleaner_run.sh
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+topologySpreadConstraints: []
+
+affinity: {}
+
+env:
+  - name: STRIMZI_DRAIN_KAFKA
+    value: "true"
+  - name: STRIMZI_DRAIN_ZOOKEEPER
+    value: "true"

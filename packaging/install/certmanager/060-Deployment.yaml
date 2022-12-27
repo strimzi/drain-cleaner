@@ -19,6 +19,7 @@ spec:
       containers:
         - name: strimzi-drain-cleaner
           image: quay.io/strimzi/drain-cleaner:latest
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
               name: http
