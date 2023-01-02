@@ -14,7 +14,7 @@ image:
   repository: ""
   name: drain-cleaner
   tag: ""
-  pullPolicy: IfNotPresent
+  pullPolicy: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
