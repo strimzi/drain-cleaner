@@ -19,7 +19,9 @@ spec:
       containers:
         - name: strimzi-drain-cleaner
           image: {{ default .Values.defaultImageRegistry .Values.image.registry }}/{{ default .Values.defaultImageRepository .Values.image.repository}}/{{ .Values.image.name }}:{{ default .Values.defaultImageTag .Values.image.tag }}
+          {{- if .Values.image.pullPolicy }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
           ports:
             - containerPort: 8080
               name: http
