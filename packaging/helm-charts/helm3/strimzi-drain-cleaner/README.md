@@ -1,8 +1,3 @@
-[![Build Status](https://dev.azure.com/cncf/strimzi/_apis/build/status/drain-cleaner?branchName=main)](https://dev.azure.com/cncf/strimzi/_build/latest?definitionId=36&branchName=main)
-[![GitHub release](https://img.shields.io/github/release/strimzi/drain-cleaner.svg)](https://github.com/strimzi/drain-cleaner/releases/latest)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
-[![Twitter Follow](https://img.shields.io/twitter/follow/strimziio.svg?style=social&label=Follow&style=for-the-badge)](https://twitter.com/strimziio)
-
 # Strimzi Drain Cleaner
 
 Strimzi Drain Cleaner is a utility which helps with moving the [Apache Kafka®](https://kafka.apache.org) pods deployed by [Strimzi](https://strimzi.io/) from Kubernetes nodes which are being drained.
@@ -11,10 +6,10 @@ The advantage of this approach is that the Strimzi operator makes sure that no p
 To use it:
 
 * Configure your Kafka topics to have replication factor higher than 1 and make sure the `min.insync.replicas` is always set to a number lower than the replication factor.
-  Availability of topics with replication factor `1` or with `min.insync.replicas` set to the same value as the replication factor will be always affected when the brokers are restarted.
+  Availability of topics with replication factor `1` or with `min.insync.replicas` set to the same value as the replication factor will always be affected when the brokers are restarted.
 * Deploy Kafka using Strimzi and configure the `PodDisruptionBudgets` for Kafka and ZooKeeper to have `maxUnavailable` set to `0`.
-This will block Kubernetes from moving the pods on their own.
-  
+  This will block Kubernetes from moving the pods on their own.
+
 ```yaml
 apiVersion: kafka.strimzi.io/v1beta2
 kind: Kafka
@@ -70,39 +65,6 @@ It annotates them with the `strimzi.io/manual-rolling-update` annotation which w
 Strimzi will roll it in the next reconciliation using its algorithms which make sure the cluster is available.
 **This is supported from Strimzi 0.21.0.**
 
-## Deployment
-
-By default, the Drain Cleaner drains Kafka and ZooKeeper pods. 
-If you want to use the Drain Cleaner with only one of them, you can edit the `Deployment` by setting the `STRIMZI_DRAIN_KAFKA` or `STRIMZI_DRAIN_ZOOKEEPER` environment variables to `false`.
-
-### On OpenShift
-
-On OpenShift, you can have the certificates needed for the web-hook generated automatically and injected into the pod / web-hook configuration.
-To install the Drain Cleaner on OpenShift, use the `./install/openshift` directory:
-
-```
-kubectl apply -f ./install/openshift
-```
-
-### On Kubernetes with CertManager
-
-On Kubernetes, when you use Cert Manager, you can have the certificates needed for the web-hook generated automatically and injected into the pod / web-hook configuration.
-To install the Drain Cleaner on Kubernetes with installed CertManager, use the `./install/certmanager` directory:
-
-```
-kubectl apply -f ./install/certmanager
-```
-
-### On Kubernetes without CertManager
-
-On Kubernetes, when you do not use Cert Manager, the certificates needed for the web-hook need to be generated manually.
-Follow the instructions in the `./install/kubernetes` directory to generate and install the certificates.
-
-### On Kubernetes using Helm Chart
-
-On Kubernetes, you can also use Helm to install Strimzi Drain Cleaner using our Helm Chart.
-The Helm Chart can be used to install it both with Cert Manager support as well as with your own certificates.
-
 ## See it in action
 
 You can easily test how it works:
@@ -131,9 +93,60 @@ If you encounter any issues while using Strimzi, you can get help using:
 You can contribute by raising any issues you find and/or fixing issues by opening Pull Requests.
 All bugs, tasks or enhancements are tracked as [GitHub issues](https://github.com/strimzi/drain-cleaner/issues).
 
-The [development documentation](./development-docs) describe how to build, test and release Strimzi Drain Cleaner.
+The [development documentation](https://github.com/strimzi/drain-cleaner/tree/main/development-docs) describe how to build, test and release Strimzi Drain Cleaner.
 
 ## License
 
-Strimzi is licensed under the [Apache License](./LICENSE), Version 2.0
+Strimzi is licensed under the [Apache License](https://github.com/strimzi/drain-cleaner/blob/main/LICENSE), Version 2.0
 
+## Installing the Chart
+
+Add the Strimzi Helm Chart repository:
+
+```bash
+$ helm repo add strimzi https://strimzi.io/charts/
+```
+
+To install the chart with the release name `my-release`:
+
+```bash
+$ helm install drain-cleaner strimzi/strimzi-drain-cleaner
+```
+
+The command deploys the Strimzi Drain Cleaner on the Kubernetes cluster with the default configuration.
+It expects Cert Manager to be installed to issue the TLS certificates.
+The [configuration](#configuration) section lists the parameters that can be configured during installation.
+
+## Uninstalling the Chart
+
+To uninstall/delete the `drain-cleaner` deployment:
+
+```bash
+$ helm delete drain-cleaner
+```
+
+The command removes all the Kubernetes components associated with the Drain Cleaner utility and deletes the release.
+
+## Configuration
+
+The following table lists some available configurable parameters of the Strimzi chart and their default values.
+For a full list of supported options, check the [`values.yaml` file](./values.yaml).
+
+| Parameter               | Description                                              | Default         |
+|-------------------------|----------------------------------------------------------|-----------------|
+| `replicas`              | Number of replicas of the Drain Cleaner webhook          | 1               |
+| `image.registry`        | Override default Drain Cleaner image registry            | `quay.io`       |
+| `image.repository`      | Override default Drain Cleaner image repository          | `strimzi`       |
+| `image.name`            | Drain Cleaner image name                                 | `drain-cleaner` |
+| `image.tag`             | Override default Drain Cleaner image tag                 | `latest`        |
+| `image.imagePullPolicy` | Image pull policy for all pods deployed by Drain Cleaner | `nil`           |
+| `resources`             | Configures resources for the Drain Cleaner Pod           | `[]`            |
+| `tolerations`           | Add tolerations to Drain Cleaner Pod                     | `[]`            |
+| `affinity`              | Add affinities to Drain Cleaner Pod                      | `{}`            |
+| `nodeSelector`          | Add a node selector to Drain Cleaner Pod                 | `{}`            |
+
+Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
+
+```bash
+$ helm install --name drain-cleaner --set replicas=2 strimzi/strimzi-drain-cleaner
+```
