@@ -3,7 +3,6 @@ PROJECT_NAME=helm-charts
 include ../../../Makefile.os
 
 RELEASE_VERSION ?= latest
-CHART_SEMANTIC_RELEASE_VERSION ?= $(shell cat ../../../release.version | tr A-Z a-z)
 CHART_NAME=strimzi-drain-cleaner
 CHART_PATH ?= ../helm3/strimzi-drain-cleaner/
 CHART_RENDERED_TEMPLATES_TMP=../../../target/charts
@@ -98,13 +97,13 @@ helm_pkg: helm_clean helm_lint helm_install
 	# Copying unarchived Helm Chart to release directory
 	mkdir -p strimzi-$(RELEASE_VERSION)/charts/
 	$(CP) -r $(CHART_PATH) strimzi-$(RELEASE_VERSION)/charts/$(CHART_NAME)
-	# Packaging helm chart with semantic version: $(CHART_SEMANTIC_RELEASE_VERSION)
-	$(HELM_CLI) package --version $(CHART_SEMANTIC_RELEASE_VERSION) --app-version $(CHART_SEMANTIC_RELEASE_VERSION) --destination ./ $(CHART_PATH)
+	# Packaging helm chart with semantic version: $(RELEASE_VERSION)
+	$(HELM_CLI) package --version $(RELEASE_VERSION) --app-version $(RELEASE_VERSION) --destination ./ $(CHART_PATH)
 	rm -rf strimzi-$(RELEASE_VERSION)
 
-java_build: helm_pkg
+java_build: helm_install
 java_install: java_build
-docker_build: helm_pkg
+docker_build: helm_install
 docker_tag:
 docker_push:
 
