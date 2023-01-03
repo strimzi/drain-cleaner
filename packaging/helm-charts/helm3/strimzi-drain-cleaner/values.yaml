@@ -5,15 +5,11 @@ replicaCount: 1
 nameOverride: ""
 fullnameOverride: ""
 
-defaultImageRegistry: quay.io
-defaultImageRepository: strimzi
-defaultImageTag: latest
-
 image:
-  registry: ""
-  repository: ""
+  registry: quay.io
+  repository: strimzi
   name: drain-cleaner
-  tag: ""
+  tag: latest
   pullPolicy: ""
 
 serviceAccount:
