@@ -8,11 +8,17 @@ This document describes how to release a new version of the Strimzi Drain Cleane
 
 Before releasing new major or minor version of Drain Cleaner, the release branch has to be created.
 The release branch should be named as `release-<Major>.<Minor>.x`.
-For example for release 1.2.0, the should be named `release-1.2.x`.
+For example for release 1.2.0, the branch should be named `release-1.2.x`.
 The release branch is normally created from the `main` branch.
 This is normally done locally and the branch is just pushed into the GitHub repository.
 
-When releasing a new patch version, the release branch should already exist.
+After creating the release branch, you should also bump the project version in the `main` branch to the next minor / major version with the `-SNAPSHOT` suffix.
+You can use `make` for it:
+```bash
+RELEASE_VERSION=1.3.0-SNAPSHOT make release_maven 
+```
+
+When releasing a new patch version, the release branch should already exist and you do not need to bump the project version in the `main` branch.
 You just need to cherry-pick bug fixes or add them through PRs.
 
 ### Prepare the release
@@ -38,7 +44,7 @@ When starting the new run, it will ask for several parameters which you need to 
 * Source build ID (the ID of the build from which the artifacts should be used - use the long build ID from the URL and not the shorter build number)
 
 The release pipeline will push the images to the registry.
-It will also prepare in artifacts the ZIP and TAR.GZ archives with the installation files.
+It will also prepare in artifacts the ZIP and TAR.GZ archives with the installation files and with the Helm Chart.
 These will be later attached to the GitHub releases.
 
 ### Smoke tests
@@ -51,6 +57,11 @@ After the release pipeline is finished, the release has to be created:
 
 * Tag the right commit from the release branch with the release name (e.g. `git tag 1.2.0`) and push it to GitHub
 * On GitHub, create the release and attach the ZIP / TAR.GZ artifacts from the release pipeline to it
+* Add the Helm Chart to the
+    * [`index.yaml` file](https://github.com/strimzi/strimzi.github.io/blob/main/charts/index.yaml) on the Strimzi website
+    * [`index.yaml` file](https://github.com/strimzi/strimzi-kafka-operator/blob/main/packaging/helm-charts/index.yaml) in the Strimzi operators repository
+* Update the `./install` and `./helm-charts` directories in the `main` branch with the newly released files from the release branch
+* Update the Drain Cleaner installation files in the Strimzi operators repository
 
 ### Announcements
 
