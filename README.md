@@ -112,13 +112,13 @@ But you can disable this by setting the `STRIMZI_CERTIFICATE_WATCH_ENABLED` envi
 
 When enabled, can also use the following environment variables to configure the detailed behavior:
 
-| Environment Variable                     | Description                                                             | Default                 |
-|------------------------------------------|-------------------------------------------------------------------------|-------------------------|
-| `STRIMZI_CERTIFICATE_WATCH_ENABLED`      | Enables or disables the certificate watch                               | false                   |
-| `STRIMZI_CERTIFICATE_WATCH_NAMESPACE`    | The namespace where the Drain Cleaner is deployed                       | `strimzi-drain-cleaner` |
-| `STRIMZI_CERTIFICATE_WATCH_POD_NAME`     | The Drain Cleaner Pod name                                              |                         |
-| `STRIMZI_CERTIFICATE_WATCH_SECRET_NAME`  | The name of the secret with TLS certificates                            | `strimzi-drain-cleaner` |
-| `STRIMZI_CERTIFICATE_WATCH_SECRET_KEYS`  | The list of fields inside the secret which contain the TLS certificates | `tls.crt,tls.key`       |
+| Environment Variable                     | Description                                                                               | Default                 |
+|------------------------------------------|-------------------------------------------------------------------------------------------|-------------------------|
+| `STRIMZI_CERTIFICATE_WATCH_ENABLED`      | Enables or disables the certificate watch                                                 | false                   |
+| `STRIMZI_CERTIFICATE_WATCH_NAMESPACE`    | The namespace where the Drain Cleaner is deployed and where the certificate secret exists | `strimzi-drain-cleaner` |
+| `STRIMZI_CERTIFICATE_WATCH_POD_NAME`     | The Drain Cleaner Pod name                                                                |                         |
+| `STRIMZI_CERTIFICATE_WATCH_SECRET_NAME`  | The name of the secret with TLS certificates                                              | `strimzi-drain-cleaner` |
+| `STRIMZI_CERTIFICATE_WATCH_SECRET_KEYS`  | The list of fields inside the secret which contain the TLS certificates                   | `tls.crt,tls.key`       |
 
 The best way to configure `STRIMZI_CERTIFICATE_WATCH_NAMESPACE` and `STRIMZI_CERTIFICATE_WATCH_POD_NAME` is using the [Kubernetes Downward API](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/).
 
