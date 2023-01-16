@@ -2,9 +2,8 @@
  * Copyright Strimzi authors.
  * License: Apache License 2.0 (see the file LICENSE or http://apache.org/licenses/LICENSE-2.0.html).
  */
-package io.strimzi.test;
+package io.strimzi;
 
-import io.strimzi.HealthCheck;
 import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
