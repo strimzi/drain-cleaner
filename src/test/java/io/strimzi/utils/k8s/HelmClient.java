@@ -5,7 +5,6 @@
 package io.strimzi.utils.k8s;
 
 import io.strimzi.utils.executor.Exec;
-import io.strimzi.utils.k8s.cmdClient.KubeCmdClient;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,17 +24,7 @@ public class HelmClient {
     private static final String HELM_3_CMD = "helm3";
     private static final String INSTALL_TIMEOUT_SECONDS = "120s";
 
-    private String namespace;
-
     private static String helmCommand = HELM_CMD;
-
-    public HelmClient(String namespace) {
-        this.namespace = namespace;
-    }
-
-    public HelmClient namespace(String namespace) {
-        return new HelmClient(namespace);
-    }
 
     /** Install a chart given its local path, release name, and values to override */
     public HelmClient install(Path chart, String releaseName, Map<String, Object> valuesMap) {
@@ -43,19 +32,12 @@ public class HelmClient {
         String values = Stream.of(valuesMap).flatMap(m -> m.entrySet().stream())
                 .map(entry -> String.format("%s=%s", entry.getKey(), entry.getValue()))
                 .collect(Collectors.joining(","));
-        Exec.exec(null, wait(namespace(command("install",
+        Exec.exec(null, wait(command("install",
                 releaseName,
                 "--set", values,
                 "--timeout", INSTALL_TIMEOUT_SECONDS,
                 "--debug",
-                chart.toString()))), 0, true);
-        return this;
-    }
-
-    /** Delete a chart given its release name */
-    public HelmClient delete(String releaseName) {
-        LOGGER.info("Deleting helm-chart {}", releaseName);
-        delete(namespace, releaseName);
+                chart.toString())), 0, true);
         return this;
     }
 
@@ -65,9 +47,9 @@ public class HelmClient {
      * @param releaseName helm chart release name
      * @return this
      */
-    public HelmClient delete(String namespace, String releaseName) {
-        LOGGER.info("Deleting helm-chart:{} in namespace:{}", releaseName, namespace);
-        Exec.exec(null, command("delete", releaseName, "--namespace", namespace), 0, false);
+    public HelmClient delete(String releaseName) {
+        LOGGER.info("Deleting helm-chart:{}", releaseName);
+        Exec.exec(null, command("delete", releaseName), 0, false);
         return this;
     }
 
@@ -88,20 +70,13 @@ public class HelmClient {
         return result;
     }
 
-    /** Sets namespace for client */
-    private List<String> namespace(List<String> args) {
-        args.add("--namespace");
-        args.add(namespace);
-        return args;
-    }
-
     private List<String> wait(List<String> args) {
         args.add("--wait");
         return args;
     }
 
-    static HelmClient findClient(KubeCmdClient<?> kubeClient) {
-        HelmClient client = new HelmClient(kubeClient.namespace());
+    static HelmClient findClient() {
+        HelmClient client = new HelmClient();
         if (!client.clientAvailable()) {
             throw new RuntimeException("No helm client found on $PATH. $PATH=" + System.getenv("PATH"));
         }

@@ -7,6 +7,7 @@ package io.strimzi.utils.k8s;
 import io.fabric8.kubernetes.api.model.DeletionPropagation;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Namespace;
+import io.fabric8.kubernetes.api.model.NamespaceBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -45,6 +46,11 @@ public class KubeClient {
 
     public Namespace getNamespace(String namespace) {
         return client.namespaces().withName(namespace).get();
+    }
+
+    public void createNamespace(String namespaceName) {
+        Namespace ns = new NamespaceBuilder().withNewMetadata().withName(namespaceName).endMetadata().build();
+        client.namespaces().resource(ns).createOrReplace();
     }
 
     public void deleteNamespace(String name) {

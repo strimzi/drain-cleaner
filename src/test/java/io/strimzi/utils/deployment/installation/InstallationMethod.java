@@ -23,6 +23,7 @@ public class InstallationMethod {
     public void delete() {
 
     }
+
     public String getNamespaceName() {
         return this.namespaceName;
     }

@@ -107,7 +107,7 @@ public class KubeClusterResource {
      * @return Helm client
      */
     public static HelmClient helmClusterClient() {
-        return kubeClusterResource.helmClient().namespace(kubeClusterResource.getNamespace());
+        return kubeClusterResource.helmClient();
     }
 
     public KubeCmdClient cmdClient() {
@@ -126,7 +126,7 @@ public class KubeClusterResource {
 
     public HelmClient helmClient() {
         if (helmClient == null) {
-            this.helmClient = HelmClient.findClient(cmdClient());
+            this.helmClient = HelmClient.findClient();
         }
         return helmClient;
     }

@@ -10,7 +10,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.readiness.Readiness;
@@ -23,13 +22,8 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -296,33 +290,6 @@ public final class StUtils {
         }
 
         return image;
-    }
-
-    public static SecretBuilder retrieveSecretBuilderFromFile(final Map<String, String> certFilesPath, final String name,
-                                                              final String namespace, final Map<String, String> labels,
-                                                              final String secretType) {
-        byte[] encoded;
-        final Map<String, String> data = new HashMap<>();
-
-        try {
-            for (final Map.Entry<String, String> entry : certFilesPath.entrySet()) {
-                encoded = Files.readAllBytes(Paths.get(entry.getValue()));
-
-                final Base64.Encoder encoder = Base64.getEncoder();
-                data.put(entry.getKey(), encoder.encodeToString(encoded));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return new SecretBuilder()
-            .withType(secretType)
-            .withData(data)
-            .withNewMetadata()
-                .withName(name)
-                .withNamespace(namespace)
-                .addToLabels(labels)
-            .endMetadata();
     }
 
     private static String setImageProperties(String current, String envVar) {
