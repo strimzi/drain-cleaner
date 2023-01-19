@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
+import io.strimzi.utils.Constants;
 import io.strimzi.utils.StUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,14 +33,14 @@ public class DrainCleanerST extends AbstractST {
         createStatefulSetAndPDBWithWait(stsName);
 
         LOGGER.info("Creating eviction request to the pod");
-        String podName = kubeClient().listPodsByPrefixInName(NAMESPACE, stsName).get(0).getMetadata().getName();
-        kubeClient().getClient().pods().inNamespace(NAMESPACE).withName(podName).evict();
+        String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
+        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict();
 
         LOGGER.info("Checking that pod annotations will contain \"{}: true\"", MANUAL_RU_ANNO);
 
-        StUtils.waitForAnnotationToAppear(NAMESPACE, podName, MANUAL_RU_ANNO);
+        StUtils.waitForAnnotationToAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
 
-        Map<String, String> annotations = kubeClient().namespace(NAMESPACE).getPod(podName).getMetadata().getAnnotations();
+        Map<String, String> annotations = kubeClient().namespace(Constants.NAMESPACE).getPod(podName).getMetadata().getAnnotations();
         assertEquals("true", annotations.get(MANUAL_RU_ANNO));
     }
 
@@ -51,18 +52,18 @@ public class DrainCleanerST extends AbstractST {
         createStatefulSetAndPDBWithWait(stsName);
 
         LOGGER.info("Creating eviction request to the pod");
-        String podName = kubeClient().listPodsByPrefixInName(NAMESPACE, stsName).get(0).getMetadata().getName();
-        kubeClient().getClient().pods().inNamespace(NAMESPACE).withName(podName).evict();
+        String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
+        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict();
 
         LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
-        StUtils.waitForAnnotationToNotAppear(NAMESPACE, podName, MANUAL_RU_ANNO);
+        StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
     }
 
     void createStatefulSetAndPDBWithWait(String stsName) {
         StatefulSet statefulSet = new StatefulSetBuilder()
             .withNewMetadata()
                 .withName(stsName)
-                .withNamespace(NAMESPACE)
+                .withNamespace(Constants.NAMESPACE)
             .endMetadata()
             .withNewSpec()
                 .withReplicas(1)
@@ -88,7 +89,7 @@ public class DrainCleanerST extends AbstractST {
         PodDisruptionBudget pdb = new PodDisruptionBudgetBuilder()
             .withNewMetadata()
                 .withName(stsName + "-pdb")
-                .withNamespace(NAMESPACE)
+                .withNamespace(Constants.NAMESPACE)
             .endMetadata()
             .withNewSpec()
                 .withNewMaxUnavailable(0)

@@ -35,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static io.strimzi.utils.k8s.KubeClusterResource.cmdKubeClient;
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -165,6 +166,26 @@ public final class StUtils {
             () -> kubeClient().getDeploymentStatus(namespaceName, deploymentName));
 
         LOGGER.info("Deployment: {} in namespace: {} is ready", deploymentName, namespaceName);
+    }
+
+    /**
+     * Wait until the given Deployment has been deleted.
+     * @param namespaceName Namespace name
+     * @param name The name of the Deployment.
+     */
+    public static void waitForDeploymentDeletion(String namespaceName, String name) {
+        LOGGER.debug("Waiting for Deployment {} deletion", name);
+        waitFor("Deployment " + name + " to be deleted", GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
+                () -> {
+                    if (kubeClient(namespaceName).getDeployment(namespaceName, name) == null) {
+                        return true;
+                    } else {
+                        LOGGER.warn("Deployment {} is not deleted yet! Triggering force delete by cmd client!", name);
+                        cmdKubeClient(namespaceName).deleteByName(Constants.DEPLOYMENT, name);
+                        return false;
+                    }
+                });
+        LOGGER.debug("Deployment {} was deleted", name);
     }
 
     public static void waitForAnnotationToAppear(String namespaceName, String podName, String annotationKey) {

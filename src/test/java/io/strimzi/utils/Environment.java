@@ -4,6 +4,7 @@
  */
 package io.strimzi.utils;
 
+import io.strimzi.utils.enums.InstallType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,9 +22,12 @@ public class Environment {
 
     private static final String CLEANER_TAG_ENV = "DOCKER_TAG";
 
+    private static final String INSTALL_TYPE_ENV = "DC_INSTALL_TYPE";
+
     public static final String CLEANER_REGISTRY = getOrDefault(CLEANER_REGISTRY_ENV, null);
     public static final String CLEANER_ORG = getOrDefault(CLEANER_ORG_ENV, null);
     public static final String CLEANER_TAG = getOrDefault(CLEANER_TAG_ENV, null);
+    public static final InstallType INSTALL_TYPE = getInstallTypeOrDefault(INSTALL_TYPE_ENV, InstallType.Bundle);
 
     static {
         String debugFormat = "{}: {}";
@@ -37,5 +41,11 @@ public class Environment {
         String value = System.getenv(var) != null ? System.getenv(var) : defaultValue;
         VALUES.put(var, value);
         return value;
+    }
+
+    private static InstallType getInstallTypeOrDefault(String var, InstallType defaultValue) {
+        InstallType value = System.getenv(var) != null ? InstallType.fromString(System.getenv(var)) : defaultValue;
+        VALUES.put(var, value.toString());
+        return defaultValue;
     }
 }

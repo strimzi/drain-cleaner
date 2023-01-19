@@ -122,6 +122,13 @@ public class KubeClient {
     }
 
     /**
+     * Gets deployment
+     */
+    public Deployment getDeployment(String namespaceName, String deploymentName) {
+        return client.apps().deployments().inNamespace(namespaceName).withName(deploymentName).get();
+    }
+
+    /**
      * Gets deployment status
      */
     public boolean getDeploymentStatus(String namespaceName, String deploymentName) {

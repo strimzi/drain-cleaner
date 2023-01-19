@@ -23,6 +23,11 @@ public class Kubectl extends BaseCmdKubeClient<Kubectl> {
     }
 
     @Override
+    public String namespace() {
+        return namespace;
+    }
+
+    @Override
     public String defaultNamespace() {
         return "default";
     }
