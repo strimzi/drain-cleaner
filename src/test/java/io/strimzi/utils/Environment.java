@@ -46,6 +46,6 @@ public class Environment {
     private static InstallType getInstallTypeOrDefault(String var, InstallType defaultValue) {
         InstallType value = System.getenv(var) != null ? InstallType.fromString(System.getenv(var)) : defaultValue;
         VALUES.put(var, value.toString());
-        return defaultValue;
+        return value;
     }
 }
