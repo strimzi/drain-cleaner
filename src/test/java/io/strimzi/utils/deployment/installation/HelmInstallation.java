@@ -26,10 +26,6 @@ public class HelmInstallation extends InstallationMethod {
     public static final String HELM_RELEASE_NAME = "drain-cleaner-systemtests";
     private static final Logger LOGGER = LogManager.getLogger(HelmInstallation.class);
 
-    public HelmInstallation(String namespaceName) {
-        super(namespaceName);
-    }
-
     @Override
     public void deploy() {
         // create DC namespace
@@ -68,13 +64,13 @@ public class HelmInstallation extends InstallationMethod {
         Path pathToChart = new File(HELM_CHART).toPath();
         LOGGER.info("Installing DrainCleaner via Helm");
         helmClusterClient().install(pathToChart, HELM_RELEASE_NAME, values);
-        StUtils.waitForDeploymentReady(this.getNamespaceName(), Constants.DEPLOYMENT_NAME);
+        StUtils.waitForDeploymentReady(Constants.NAMESPACE, Constants.DEPLOYMENT_NAME);
     }
 
     @Override
     public void delete() {
         LOGGER.info("Deleting DrainCleaner via Helm");
         helmClusterClient().delete(HELM_RELEASE_NAME);
-        StUtils.waitForDeploymentDeletion(this.getNamespaceName(), Constants.DEPLOYMENT_NAME);
+        StUtils.waitForDeploymentDeletion(Constants.NAMESPACE, Constants.DEPLOYMENT_NAME);
     }
 }

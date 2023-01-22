@@ -28,10 +28,6 @@ public class BundleInstallation extends InstallationMethod {
     private static final Logger LOGGER = LogManager.getLogger(BundleInstallation.class);
     private static Stack<String> createdFiles = new Stack<>();
 
-    public BundleInstallation(String namespaceName) {
-        super(namespaceName);
-    }
-
     @Override
     public void deploy() {
         List<File> drainCleanerFiles = Arrays.stream(new File(Constants.INSTALL_PATH).listFiles()).sorted()
@@ -54,7 +50,7 @@ public class BundleInstallation extends InstallationMethod {
                         validatingWebhookConfiguration.getWebhooks().stream().findFirst().get().getClientConfig().setCaBundle(customDrainCleanerSecretBuilder.get().getData().get("tls.crt"));
                         kubeClient().getClient().admissionRegistration().v1().validatingWebhookConfigurations().createOrReplace(validatingWebhookConfiguration);
                     } else {
-                        cmdKubeClient().namespace(this.getNamespaceName()).apply(file);
+                        cmdKubeClient().namespace(Constants.NAMESPACE).apply(file);
                     }
                     createdFiles.add(file.getAbsolutePath());
                 } else {
@@ -69,7 +65,7 @@ public class BundleInstallation extends InstallationMethod {
         while (!createdFiles.empty()) {
             String fileToBeDeleted = createdFiles.pop();
             LOGGER.info("Deleting file: {}", fileToBeDeleted);
-            cmdKubeClient().namespace(this.getNamespaceName()).delete(fileToBeDeleted);
+            cmdKubeClient().namespace(Constants.NAMESPACE).delete(fileToBeDeleted);
         }
     }
 
@@ -91,6 +87,6 @@ public class BundleInstallation extends InstallationMethod {
 
         createdFiles.add(deploymentFile.getAbsolutePath());
         kubeClient().createOrReplaceDeployment(drainCleanerDep);
-        StUtils.waitForDeploymentReady(this.getNamespaceName(), Constants.DEPLOYMENT_NAME);
+        StUtils.waitForDeploymentReady(Constants.NAMESPACE, Constants.DEPLOYMENT_NAME);
     }
 }

@@ -4,27 +4,14 @@
  */
 package io.strimzi.utils.deployment.installation;
 
-public class InstallationMethod {
-    private String namespaceName;
-    public InstallationMethod(String namespaceName) {
-        this.namespaceName = namespaceName;
-    }
-
+public abstract class InstallationMethod {
     /**
      * Deploy Drain Cleaner
      */
-    public void deploy() {
-
-    }
+    public abstract void deploy();
 
     /**
      * Delete Drain Cleaner
      */
-    public void delete() {
-
-    }
-
-    public String getNamespaceName() {
-        return this.namespaceName;
-    }
+    public abstract void delete();
 }

@@ -21,7 +21,6 @@ public class HelmClient {
     private static final Logger LOGGER = LogManager.getLogger(HelmClient.class);
 
     private static final String HELM_CMD = "helm";
-    private static final String HELM_3_CMD = "helm3";
     private static final String INSTALL_TIMEOUT_SECONDS = "120s";
 
     private static String helmCommand = HELM_CMD;
@@ -55,9 +54,6 @@ public class HelmClient {
 
     public static boolean clientAvailable() {
         if (Exec.isExecutableOnPath(HELM_CMD)) {
-            return true;
-        } else if (Exec.isExecutableOnPath(HELM_3_CMD)) {
-            helmCommand = HELM_3_CMD;
             return true;
         }
         return false;

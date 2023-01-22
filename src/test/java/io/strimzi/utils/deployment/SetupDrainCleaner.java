@@ -11,11 +11,9 @@ import io.strimzi.utils.deployment.installation.InstallationMethod;
 import io.strimzi.utils.enums.InstallType;
 
 public class SetupDrainCleaner {
-    private String namespaceName;
     private InstallationMethod installationMethod;
 
-    public SetupDrainCleaner(String namespaceName) {
-        this.namespaceName = namespaceName;
+    public SetupDrainCleaner() {
         this.installationMethod = getInstallationMethod();
     }
 
@@ -28,6 +26,6 @@ public class SetupDrainCleaner {
     }
 
     private InstallationMethod getInstallationMethod() {
-        return Environment.INSTALL_TYPE == InstallType.Helm ? new HelmInstallation(namespaceName) : new BundleInstallation(namespaceName);
+        return Environment.INSTALL_TYPE == InstallType.Helm ? new HelmInstallation() : new BundleInstallation();
     }
 }

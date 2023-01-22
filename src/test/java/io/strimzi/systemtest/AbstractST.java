@@ -43,7 +43,7 @@ public class AbstractST {
             StUtils.deleteNamespaceWithWait(Constants.NAMESPACE);
         }
 
-        setupDrainCleaner = new SetupDrainCleaner(Constants.NAMESPACE);
+        setupDrainCleaner = new SetupDrainCleaner();
         setupDrainCleaner.deployDrainCleaner();
     }
 
