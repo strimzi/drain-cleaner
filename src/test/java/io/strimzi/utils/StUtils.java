@@ -10,7 +10,6 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.readiness.Readiness;
@@ -23,18 +22,14 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import static io.strimzi.utils.k8s.KubeClusterResource.cmdKubeClient;
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -167,6 +162,26 @@ public final class StUtils {
         LOGGER.info("Deployment: {} in namespace: {} is ready", deploymentName, namespaceName);
     }
 
+    /**
+     * Wait until the given Deployment has been deleted.
+     * @param namespaceName Namespace name
+     * @param name The name of the Deployment.
+     */
+    public static void waitForDeploymentDeletion(String namespaceName, String name) {
+        LOGGER.debug("Waiting for Deployment {} deletion", name);
+        waitFor("Deployment " + name + " to be deleted", GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
+                () -> {
+                    if (kubeClient(namespaceName).getDeployment(namespaceName, name) == null) {
+                        return true;
+                    } else {
+                        LOGGER.warn("Deployment {} is not deleted yet! Triggering force delete by cmd client!", name);
+                        cmdKubeClient(namespaceName).deleteByName(Constants.DEPLOYMENT, name);
+                        return false;
+                    }
+                });
+        LOGGER.debug("Deployment {} was deleted", name);
+    }
+
     public static void waitForAnnotationToAppear(String namespaceName, String podName, String annotationKey) {
         LOGGER.info("Waiting for annotation: {} to appear in pod: {}", annotationKey, podName);
         waitFor(String.format("annotation: %s to appear in pod: %s", annotationKey, podName), GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
@@ -275,33 +290,6 @@ public final class StUtils {
         }
 
         return image;
-    }
-
-    public static SecretBuilder retrieveSecretBuilderFromFile(final Map<String, String> certFilesPath, final String name,
-                                                              final String namespace, final Map<String, String> labels,
-                                                              final String secretType) {
-        byte[] encoded;
-        final Map<String, String> data = new HashMap<>();
-
-        try {
-            for (final Map.Entry<String, String> entry : certFilesPath.entrySet()) {
-                encoded = Files.readAllBytes(Paths.get(entry.getValue()));
-
-                final Base64.Encoder encoder = Base64.getEncoder();
-                data.put(entry.getKey(), encoder.encodeToString(encoded));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        return new SecretBuilder()
-            .withType(secretType)
-            .withData(data)
-            .withNewMetadata()
-                .withName(name)
-                .withNamespace(namespace)
-                .addToLabels(labels)
-            .endMetadata();
     }
 
     private static String setImageProperties(String current, String envVar) {

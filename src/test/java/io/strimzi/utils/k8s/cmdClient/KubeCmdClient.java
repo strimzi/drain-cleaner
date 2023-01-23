@@ -19,11 +19,16 @@ public interface KubeCmdClient<K extends KubeCmdClient<K>> {
 
     KubeCmdClient<K> namespace(String namespace);
 
+    /** Returns namespace for cluster */
+    String namespace();
+
     /** Creates the resources in the given files. */
     K apply(File... files);
 
     /** Deletes the resources in the given files. */
     K delete(File... files);
+
+    K deleteByName(String resourceType, String resourceName);
 
     default K delete(String... files) {
         return delete(asList(files).stream().map(File::new).collect(toList()).toArray(new File[0]));
