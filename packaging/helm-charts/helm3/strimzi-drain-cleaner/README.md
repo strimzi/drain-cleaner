@@ -134,7 +134,7 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 
 | Parameter               | Description                                              | Default         |
 |-------------------------|----------------------------------------------------------|-----------------|
-| `replicas`              | Number of replicas of the Drain Cleaner webhook          | 1               |
+| `replicaCount`          | Number of replicas of the Drain Cleaner webhook          | 1               |
 | `image.registry`        | Override default Drain Cleaner image registry            | `quay.io`       |
 | `image.repository`      | Override default Drain Cleaner image repository          | `strimzi`       |
 | `image.name`            | Drain Cleaner image name                                 | `drain-cleaner` |
