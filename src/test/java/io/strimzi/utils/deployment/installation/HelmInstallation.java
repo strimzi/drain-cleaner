@@ -39,17 +39,17 @@ public class HelmInstallation extends InstallationMethod {
 
         if (Environment.CLEANER_REGISTRY != null) {
             // image registry config
-            values.put("defaultImageRegistry", Environment.CLEANER_REGISTRY);
+            values.put("image.registry", Environment.CLEANER_REGISTRY);
         }
 
         if (Environment.CLEANER_ORG != null) {
             // image repository config
-            values.put("defaultImageRepository", Environment.CLEANER_ORG);
+            values.put("image.repository", Environment.CLEANER_ORG);
         }
 
         if (Environment.CLEANER_TAG != null) {
             // image tags config
-            values.put("defaultImageTag", Environment.CLEANER_TAG);
+            values.put("image.tag", Environment.CLEANER_TAG);
         }
 
         // don't deploy certificate and issuer
