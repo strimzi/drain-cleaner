@@ -57,9 +57,13 @@ After the release pipeline is finished, the release has to be created:
 
 * Tag the right commit from the release branch with the release name (e.g. `git tag 1.2.0`) and push it to GitHub
 * On GitHub, create the release and attach the ZIP / TAR.GZ artifacts from the release pipeline to it
-* Add the Helm Chart to the
-    * [`index.yaml` file](https://github.com/strimzi/strimzi.github.io/blob/main/charts/index.yaml) on the Strimzi website
-    * [`index.yaml` file](https://github.com/strimzi/strimzi-kafka-operator/blob/main/packaging/helm-charts/index.yaml) in the Strimzi operators repository
+* Add the Helm Chart to the index file
+    * Checkout the Strimzi website and go to the `charts/` directory
+    * Copy the Helm Chart archive to this directory
+    * Update the `index.yaml` file with the `helm repo index . --merge index.yaml --url https://github.com/strimzi/drain-cleaner/releases/download/1.0.0/` command (use the right version).
+    * Delete the Helm Chart archive and keep only the `index.yaml` file
+    * Commit the [`index.yaml` file](https://github.com/strimzi/strimzi.github.io/blob/main/charts/index.yaml) to the Strimzi website
+    * Copy it to the operators repo [`index.yaml` file](https://github.com/strimzi/strimzi-kafka-operator/blob/main/packaging/helm-charts/index.yaml) as well
 * Update the `./install` and `./helm-charts` directories in the `main` branch with the newly released files from the release branch
 * Update the Drain Cleaner installation files in the Strimzi operators repository
 
