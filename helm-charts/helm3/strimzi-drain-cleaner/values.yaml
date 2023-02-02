@@ -5,16 +5,12 @@ replicaCount: 1
 nameOverride: ""
 fullnameOverride: ""
 
-defaultImageRegistry: quay.io
-defaultImageRepository: strimzi
-defaultImageTag: latest
-
 image:
-  registry: ""
-  repository: ""
+  registry: quay.io
+  repository: strimzi
   name: drain-cleaner
-  tag: ""
-  pullPolicy: IfNotPresent
+  tag: 0.4.0
+  pullPolicy: ""
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -67,3 +63,13 @@ env:
     value: "true"
   - name: STRIMZI_DRAIN_ZOOKEEPER
     value: "true"
+  - name: STRIMZI_CERTIFICATE_WATCH_ENABLED
+    value: "true"
+  - name: STRIMZI_CERTIFICATE_WATCH_NAMESPACE
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+  - name: STRIMZI_CERTIFICATE_WATCH_POD_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
