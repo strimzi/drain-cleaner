@@ -9,7 +9,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
-    namespace: {{default .Release.Namespace .Values.namespace.name }}
+    namespace: {{ default .Release.Namespace .Values.namespace.name }}
 roleRef:
   kind: Role
   name: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
