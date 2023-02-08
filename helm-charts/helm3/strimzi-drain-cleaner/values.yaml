@@ -9,7 +9,7 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 0.4.0
+  tag: 0.4.1
   pullPolicy: ""
 
 serviceAccount:

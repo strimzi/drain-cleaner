@@ -5,7 +5,7 @@ metadata:
   name: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
   labels:
     {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
-  namespace: {{default .Release.Namespace .Values.namespace.name }}
+  namespace: {{ default .Release.Namespace .Values.namespace.name }}
 rules:
   # When certificate reloading is enabled, Drain Cleaner will delete itself to reload the certificates. Therefore it
   # needs the right to delete the pods in its own namespace.
