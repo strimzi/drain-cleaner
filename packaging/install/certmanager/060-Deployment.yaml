@@ -45,8 +45,8 @@ spec:
             - name: webhook-certificates
               mountPath: "/etc/webhook-certificates"
               readOnly: true
-            - name: vertx-cache
-              mountPath: "/tmp/vertx-cache"
+            - name: tmp-dir
+              mountPath: "/tmp"
           livenessProbe:
             httpGet:
               path: /health
@@ -63,7 +63,7 @@ spec:
         - name: webhook-certificates
           secret:
             secretName: strimzi-drain-cleaner
-        - name: vertx-cache
+        - name: tmp-dir
           emptyDir: {}
   strategy:
     type: RollingUpdate
