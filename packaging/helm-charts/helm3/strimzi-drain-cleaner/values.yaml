@@ -34,6 +34,8 @@ secret:
 namespace:
   create: true
   name: strimzi-drain-cleaner
+  # Extra lables to add to the namespace
+  extraLabels: {}
 
 args:
   - /opt/strimzi/bin/drain_cleaner_run.sh
