@@ -21,6 +21,7 @@ import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -78,6 +79,7 @@ public class ValidatingWebhookTest {
                 .withNewMetadata()
                     .withName(podName)
                     .withNamespace("my-namespace")
+                    .withLabels(Collections.singletonMap("strimzi.io/name", "my-cluster-kafka"))
                 .endMetadata()
                 .build());
         admissionRequest.setDryRun(false);
@@ -147,13 +149,14 @@ public class ValidatingWebhookTest {
 
     @Test
     public void testWrongName() {
-        String podName = "my-cluster-connect-1";
+        String podName = "my-cluster-kafka-1";
+        Map label = Collections.singletonMap("mylabel", "foo");
         when(podResource.get()).thenReturn(mockedPod(podName, true, false));
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
         ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false));
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(podName, false, label));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
@@ -178,7 +181,7 @@ public class ValidatingWebhookTest {
         ValidatingWebhook webhook = new ValidatingWebhook(client, false, false);
 
         // Test it for Kafka
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest("my-cluster-kafka-1", true));
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest("my-cluster", true));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
@@ -186,7 +189,7 @@ public class ValidatingWebhookTest {
         verify(podResource, never()).patch((Pod) any());
 
         // Test it for ZooKeeper
-        reviewResponse = webhook.webhook(reviewRequest("my-cluster-zookeeper-1", true));
+        reviewResponse = webhook.webhook(reviewRequest("my-cluster", true));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
@@ -208,6 +211,7 @@ public class ValidatingWebhookTest {
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
         verify(podResource, never()).patch((Pod) any());
+
     }
 
     @Test
@@ -248,6 +252,7 @@ public class ValidatingWebhookTest {
         admissionRequest.setObject(new EvictionBuilder()
                 .withNewMetadata()
                 .withName(podName)
+                .withLabels(Collections.singletonMap("strimzi.io/name", "my-cluster-kafka"))
                 .endMetadata()
                 .build());
         admissionRequest.setDryRun(false);
@@ -325,11 +330,16 @@ public class ValidatingWebhookTest {
     }
 
     private AdmissionReview reviewRequest(String podName, boolean dryRun)   {
+        return reviewRequest(podName, dryRun, Collections.singletonMap("strimzi.io/name", "my-cluster-kafka"));
+    }
+
+    private AdmissionReview reviewRequest(String podName, boolean dryRun, Map<String, String> label)   {
         AdmissionRequest admissionRequest = new AdmissionRequest();
         admissionRequest.setObject(new EvictionBuilder()
                 .withNewMetadata()
                     .withName(podName)
                     .withNamespace("my-namespace")
+                    .withLabels(label)
                 .endMetadata()
                 .build());
         admissionRequest.setDryRun(dryRun);

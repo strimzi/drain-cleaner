@@ -28,10 +28,9 @@ import java.util.regex.Pattern;
 @Path("/drainer")
 public class ValidatingWebhook {
     private static final Logger LOG = LoggerFactory.getLogger(ValidatingWebhook.class);
-
-    private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile(".+(-zookeeper-)[0-9]+");
-    private static final Pattern KAFKA_PATTERN = Pattern.compile(".+(-kafka-)[0-9]+");
-
+    private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile(".+-zookeeper");
+    private static final Pattern KAFKA_PATTERN = Pattern.compile(".+-kafka");
+    private static final String STRIMZI_LABEL_KEY = "strimzi.io/name";
     @ConfigProperty(name = "strimzi.drain.kafka")
     boolean drainKafka;
 
@@ -65,6 +64,11 @@ public class ValidatingWebhook {
         }
     }
 
+    private boolean matchingLabel(Map<String, String> labels) {
+        return labels.get(STRIMZI_LABEL_KEY) != null &&  (ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
+                || KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches());
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -74,12 +78,10 @@ public class ValidatingWebhook {
         AdmissionRequest request = review.getRequest();
         ObjectMeta evictionMetadata = extractEvictionMetadata(request);
 
-        if (evictionMetadata != null)   {
-            if (drainZooKeeper && ZOOKEEPER_PATTERN.matcher(evictionMetadata.getName()).matches()
-                    || drainKafka && KAFKA_PATTERN.matcher(evictionMetadata.getName()).matches()) {
+        if (evictionMetadata != null) {
+            if ((drainKafka || drainZooKeeper) && (matchingLabel(evictionMetadata.getLabels()))) {
                 String name = evictionMetadata.getName();
                 String namespace = evictionMetadata.getNamespace();
-
                 if (namespace == null) {
                     // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
                     // request without the namespace. In such case, we use the namespace form the AdmissionRequest.
@@ -99,13 +101,12 @@ public class ValidatingWebhook {
         } else {
             LOG.warn("Weird, this does not seem to be an Eviction webhook.");
         }
-
         return new AdmissionReviewBuilder()
-                .withNewResponse()
-                    .withUid(request.getUid())
-                    .withAllowed(true)
-                .endResponse()
-                .build();
+                    .withNewResponse()
+                        .withUid(request.getUid())
+                        .withAllowed(true)
+                    .endResponse()
+                    .build();
     }
 
     void annotatePodForRestart(String name, String namespace, boolean dryRun)    {
