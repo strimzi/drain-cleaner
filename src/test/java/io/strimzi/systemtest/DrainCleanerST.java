@@ -4,8 +4,6 @@
  */
 package io.strimzi.systemtest;
 
-import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
@@ -32,7 +30,7 @@ public class DrainCleanerST extends AbstractST {
     @Test
     void testEvictionRequestOnKafkaPod() {
         final String stsName = "my-cluster-kafka";
-        final Map <String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-kafka");
+        final Map<String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-kafka");
         LOGGER.info("Creating dummy pod that will contain \"kafka\" in its name.");
         createStatefulSetAndPDBWithWait(stsName, label);
 
