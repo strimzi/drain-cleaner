@@ -65,12 +65,9 @@ public class ValidatingWebhook {
     }
 
     private boolean matchingLabel(Map<String, String> labels) {
-        if (labels.get(STRIMZI_LABEL_KEY) != null) {
-            if (drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
-                || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()) {
-                return true;
-            }
-        }
+        if (labels.get(STRIMZI_LABEL_KEY) != null)
+            return drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
+                    || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches();
         return false;
     }
 

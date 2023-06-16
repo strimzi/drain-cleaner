@@ -4,8 +4,10 @@
  */
 package io.strimzi.systemtest;
 
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
+import io.fabric8.kubernetes.api.model.policy.v1.Eviction;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.strimzi.utils.Constants;
@@ -30,18 +32,21 @@ public class DrainCleanerST extends AbstractST {
     void testEvictionRequestOnKafkaPod() {
         final String stsName = "my-cluster-kafka";
         final Map<String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-kafka");
-//        LabelSelector labelSector  = new LabelSelector();
-//        labelSector.setMatchLabels(label);
+
         LOGGER.info("Creating dummy pod that will contain \"kafka\" in its name.");
         createStatefulSetAndPDBWithWait(stsName, label);
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
-        //String podName = kubeClient().listPods(Constants.NAMESPACE, new LabelSelectorBuilder().withMatchLabels(label).build()).get(0).getMetadata().getName();
-        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict();
+        Eviction e = new Eviction();
+        ObjectMeta object = new ObjectMeta();
+        object.setLabels(label);
+        object.setNamespace(Constants.NAMESPACE);
+        object.setName(podName);
+        e.setMetadata(object);
+        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict(e);
 
         LOGGER.info("Checking that pod annotations will contain \"{}: true\"", MANUAL_RU_ANNO);
-        LOGGER.info("print out pod name that we sending request to {}", podName);
 
         StUtils.waitForAnnotationToAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
 
@@ -52,13 +57,20 @@ public class DrainCleanerST extends AbstractST {
     @Test
     void testEvictionRequestOnRandomPod() {
         final String stsName = "my-cluster-pulsar";
+        final Map<String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-pulsar");
 
         LOGGER.info("Creating dummy pod that will not contain \"kafka\" or \"zookeeper\" in its strimzi.io/name label");
-        createStatefulSetAndPDBWithWait(stsName, Collections.singletonMap("strimzi.io/name", "my-cluster-pulsar"));
+        createStatefulSetAndPDBWithWait(stsName, label);
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
-        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict();
+        Eviction e = new Eviction();
+        ObjectMeta object = new ObjectMeta();
+        object.setLabels(label);
+        object.setNamespace(Constants.NAMESPACE);
+        object.setName(podName);
+        e.setMetadata(object);
+        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict(e);
 
         LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
         StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
