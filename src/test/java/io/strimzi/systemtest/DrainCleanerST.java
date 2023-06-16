@@ -4,16 +4,20 @@
  */
 package io.strimzi.systemtest;
 
+import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.PodList;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.strimzi.utils.Constants;
 import io.strimzi.utils.StUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.Map;
 
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
@@ -28,13 +32,14 @@ public class DrainCleanerST extends AbstractST {
     @Test
     void testEvictionRequestOnKafkaPod() {
         final String stsName = "my-cluster-kafka";
-
+        final Map <String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-kafka");
         LOGGER.info("Creating dummy pod that will contain \"kafka\" in its name.");
-        createStatefulSetAndPDBWithWait(stsName);
+        createStatefulSetAndPDBWithWait(stsName, label);
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
-        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict();
+        PodResource pod = (PodResource) kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withLabels(label);
+        pod.evict();
 
         LOGGER.info("Checking that pod annotations will contain \"{}: true\"", MANUAL_RU_ANNO);
 
@@ -48,8 +53,8 @@ public class DrainCleanerST extends AbstractST {
     void testEvictionRequestOnRandomPod() {
         final String stsName = "my-cluster-pulsar";
 
-        LOGGER.info("Creating dummy pod that will not contain \"kafka\" or \"zookeeper\" in its name.");
-        createStatefulSetAndPDBWithWait(stsName);
+        LOGGER.info("Creating dummy pod that will not contain \"kafka\" or \"zookeeper\" in its strimzi.io/name label");
+        createStatefulSetAndPDBWithWait(stsName, Collections.singletonMap("strimzi.io/name", "my-cluster-pulsar"));
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
@@ -59,11 +64,12 @@ public class DrainCleanerST extends AbstractST {
         StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
     }
 
-    void createStatefulSetAndPDBWithWait(String stsName) {
+    void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> label) {
         StatefulSet statefulSet = new StatefulSetBuilder()
             .withNewMetadata()
                 .withName(stsName)
                 .withNamespace(Constants.NAMESPACE)
+                .withLabels(label)
             .endMetadata()
             .withNewSpec()
                 .withReplicas(1)
@@ -75,7 +81,7 @@ public class DrainCleanerST extends AbstractST {
                         .addToAnnotations("dummy-annotation", "some-value")
                         .addToLabels("app", stsName)
                         .addToLabels("strimzi.io/kind", "Kafka")
-                    .endMetadata()
+                .endMetadata()
                     .withNewSpec()
                         .addNewContainer()
                             .withName("nginx-container")

@@ -147,7 +147,7 @@ public class ValidatingWebhookTest {
     }
 
     @Test
-    public void testWrongName() {
+    public void testWrongLabel() {
         String podName = "my-cluster-kafka-1";
         Map label = Collections.singletonMap("mylabel", "foo");
         when(podResource.get()).thenReturn(mockedPod(podName, true, false));
@@ -180,7 +180,7 @@ public class ValidatingWebhookTest {
         ValidatingWebhook webhook = new ValidatingWebhook(client, false, false);
 
         // Test it for Kafka
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest("my-cluster", true));
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest("my-cluster-kafka-1", true));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
@@ -188,7 +188,7 @@ public class ValidatingWebhookTest {
         verify(podResource, never()).patch((Pod) any());
 
         // Test it for ZooKeeper
-        reviewResponse = webhook.webhook(reviewRequest("my-cluster", true));
+        reviewResponse = webhook.webhook(reviewRequest("my-cluster-zookeeper-1", true));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
@@ -210,7 +210,6 @@ public class ValidatingWebhookTest {
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
         verify(podResource, never()).patch((Pod) any());
-
     }
 
     @Test

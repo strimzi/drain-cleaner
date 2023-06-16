@@ -65,8 +65,13 @@ public class ValidatingWebhook {
     }
 
     private boolean matchingLabel(Map<String, String> labels) {
-        return labels.get(STRIMZI_LABEL_KEY) != null &&  (ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
-                || KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches());
+        if (labels.get(STRIMZI_LABEL_KEY) != null) {
+            if (drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
+                || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @POST
@@ -79,7 +84,7 @@ public class ValidatingWebhook {
         ObjectMeta evictionMetadata = extractEvictionMetadata(request);
 
         if (evictionMetadata != null) {
-            if ((drainKafka || drainZooKeeper) && (matchingLabel(evictionMetadata.getLabels()))) {
+            if (matchingLabel(evictionMetadata.getLabels())) {
                 String name = evictionMetadata.getName();
                 String namespace = evictionMetadata.getNamespace();
                 if (namespace == null) {
