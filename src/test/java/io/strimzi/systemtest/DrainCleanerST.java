@@ -8,7 +8,6 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
-import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.strimzi.utils.Constants;
 import io.strimzi.utils.StUtils;
 import org.apache.logging.log4j.LogManager;
@@ -31,15 +30,18 @@ public class DrainCleanerST extends AbstractST {
     void testEvictionRequestOnKafkaPod() {
         final String stsName = "my-cluster-kafka";
         final Map<String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-kafka");
+//        LabelSelector labelSector  = new LabelSelector();
+//        labelSector.setMatchLabels(label);
         LOGGER.info("Creating dummy pod that will contain \"kafka\" in its name.");
         createStatefulSetAndPDBWithWait(stsName, label);
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
-        PodResource pod = (PodResource) kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withLabels(label);
-        pod.evict();
+        //String podName = kubeClient().listPods(Constants.NAMESPACE, new LabelSelectorBuilder().withMatchLabels(label).build()).get(0).getMetadata().getName();
+        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict();
 
         LOGGER.info("Checking that pod annotations will contain \"{}: true\"", MANUAL_RU_ANNO);
+        LOGGER.info("print out pod name that we sending request to {}", podName);
 
         StUtils.waitForAnnotationToAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
 
@@ -67,7 +69,6 @@ public class DrainCleanerST extends AbstractST {
             .withNewMetadata()
                 .withName(stsName)
                 .withNamespace(Constants.NAMESPACE)
-                .withLabels(label)
             .endMetadata()
             .withNewSpec()
                 .withReplicas(1)
@@ -79,6 +80,7 @@ public class DrainCleanerST extends AbstractST {
                         .addToAnnotations("dummy-annotation", "some-value")
                         .addToLabels("app", stsName)
                         .addToLabels("strimzi.io/kind", "Kafka")
+                        .addToLabels(label)
                 .endMetadata()
                     .withNewSpec()
                         .addNewContainer()
