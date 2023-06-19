@@ -4,10 +4,11 @@
  */
 package io.strimzi.systemtest;
 
+import io.fabric8.kubernetes.api.model.DeleteOptionsBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
-import io.fabric8.kubernetes.api.model.policy.v1.Eviction;
+import io.fabric8.kubernetes.api.model.policy.v1.EvictionBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.strimzi.utils.Constants;
@@ -15,10 +16,7 @@ import io.strimzi.utils.StUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
 import java.util.Map;
-
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -30,51 +28,60 @@ public class DrainCleanerST extends AbstractST {
 
     @Test
     void testEvictionRequestOnKafkaPod() {
-        final String stsName = "my-cluster-kafka";
-        final Map<String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-kafka");
+        final String stsName = "my-cluster-foo";
+        final Map<String, String> labels = Map.of(
+                "app", stsName,
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
 
-        LOGGER.info("Creating dummy pod that will contain \"kafka\" in its name.");
-        createStatefulSetAndPDBWithWait(stsName, label);
+        LOGGER.info("Creating dummy pod. ");
+        createStatefulSetAndPDBWithWait(stsName, labels);
 
         LOGGER.info("Creating eviction request to the pod");
-        String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
-        Eviction e = new Eviction();
-        ObjectMeta object = new ObjectMeta();
-        object.setLabels(label);
-        object.setNamespace(Constants.NAMESPACE);
-        object.setName(podName);
-        e.setMetadata(object);
-        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict(e);
+        ObjectMeta meta = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata();
+
+        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(meta.getName())
+            .evict(new EvictionBuilder()
+                .withMetadata(meta)
+                .withDeleteOptions(new DeleteOptionsBuilder()
+                    .withGracePeriodSeconds(0L)
+                    .build())
+                .build());
 
         LOGGER.info("Checking that pod annotations will contain \"{}: true\"", MANUAL_RU_ANNO);
 
-        StUtils.waitForAnnotationToAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
+        StUtils.waitForAnnotationToAppear(Constants.NAMESPACE, meta.getName(), MANUAL_RU_ANNO);
 
-        Map<String, String> annotations = kubeClient().namespace(Constants.NAMESPACE).getPod(podName).getMetadata().getAnnotations();
+        Map<String, String> annotations = kubeClient().namespace(Constants.NAMESPACE).getPod(meta.getName()).getMetadata().getAnnotations();
         assertEquals("true", annotations.get(MANUAL_RU_ANNO));
     }
 
     @Test
     void testEvictionRequestOnRandomPod() {
-        final String stsName = "my-cluster-pulsar";
-
-        LOGGER.info("Creating dummy pod that will not contain \"kafka\" or \"zookeeper\" in its strimzi.io/name label");
-        createStatefulSetAndPDBWithWait(stsName, Collections.emptyMap());
+        final String stsName = "my-cluster-bar";
+        final Map<String, String> labels = Map.of(
+                "app", stsName,
+                "strimzi.io/kind", "Kafka"
+        );
+        LOGGER.info("Creating dummy pod.");
+        createStatefulSetAndPDBWithWait(stsName, labels);
 
         LOGGER.info("Creating eviction request to the pod");
-        String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
-        Eviction e = new Eviction();
-        ObjectMeta object = new ObjectMeta();
-        object.setNamespace(Constants.NAMESPACE);
-        object.setName(podName);
-        e.setMetadata(object);
-        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict(e);
+        ObjectMeta meta = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata();
 
+        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(meta.getName())
+            .evict(new EvictionBuilder()
+                .withMetadata(meta)
+                .withDeleteOptions(new DeleteOptionsBuilder()
+                    .withGracePeriodSeconds(0L)
+                    .build())
+                .build());
         LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
-        StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
+        StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, meta.getName(), MANUAL_RU_ANNO);
     }
 
-    void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> label) {
+    void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> labels) {
         StatefulSet statefulSet = new StatefulSetBuilder()
             .withNewMetadata()
                 .withName(stsName)
@@ -83,14 +90,11 @@ public class DrainCleanerST extends AbstractST {
             .withNewSpec()
                 .withReplicas(1)
                 .withNewSelector()
-                    .addToMatchLabels("app", stsName)
+                    .addToMatchLabels(labels)
                 .endSelector()
                 .withNewTemplate()
                     .withNewMetadata()
-                        .addToAnnotations("dummy-annotation", "some-value")
-                        .addToLabels("app", stsName)
-                        .addToLabels("strimzi.io/kind", "Kafka")
-                        .addToLabels(label)
+                        .addToLabels(labels)
                 .endMetadata()
                     .withNewSpec()
                         .addNewContainer()
