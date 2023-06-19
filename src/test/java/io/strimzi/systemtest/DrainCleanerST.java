@@ -57,16 +57,14 @@ public class DrainCleanerST extends AbstractST {
     @Test
     void testEvictionRequestOnRandomPod() {
         final String stsName = "my-cluster-pulsar";
-        final Map<String, String> label = Collections.singletonMap("strimzi.io/name", "my-cluster-pulsar");
 
         LOGGER.info("Creating dummy pod that will not contain \"kafka\" or \"zookeeper\" in its strimzi.io/name label");
-        createStatefulSetAndPDBWithWait(stsName, label);
+        createStatefulSetAndPDBWithWait(stsName, Collections.emptyMap());
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
         Eviction e = new Eviction();
         ObjectMeta object = new ObjectMeta();
-        object.setLabels(label);
         object.setNamespace(Constants.NAMESPACE);
         object.setName(podName);
         e.setMetadata(object);

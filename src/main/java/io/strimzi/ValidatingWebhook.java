@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 @Path("/drainer")
 public class ValidatingWebhook {
     private static final Logger LOG = LoggerFactory.getLogger(ValidatingWebhook.class);
+
     private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile(".+-zookeeper");
     private static final Pattern KAFKA_PATTERN = Pattern.compile(".+-kafka");
     private static final String STRIMZI_LABEL_KEY = "strimzi.io/name";
@@ -104,11 +105,11 @@ public class ValidatingWebhook {
             LOG.warn("Weird, this does not seem to be an Eviction webhook.");
         }
         return new AdmissionReviewBuilder()
-                    .withNewResponse()
-                        .withUid(request.getUid())
-                        .withAllowed(true)
-                    .endResponse()
-                    .build();
+                .withNewResponse()
+                    .withUid(request.getUid())
+                    .withAllowed(true)
+                .endResponse()
+                .build();
     }
 
     void annotatePodForRestart(String name, String namespace, boolean dryRun)    {
