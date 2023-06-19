@@ -35,10 +35,10 @@ public class DrainCleanerST extends AbstractST {
                 "strimzi.io/name", "my-cluster-kafka"
         );
 
-        LOGGER.info("Creating dummy pod. ");
+        LOGGER.info("Creating dummy pod.");
         createStatefulSetAndPDBWithWait(stsName, labels);
 
-        LOGGER.info("Creating eviction request to the pod");
+        LOGGER.info("Creating eviction request to the pod.");
         ObjectMeta meta = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata();
 
         kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(meta.getName())
@@ -67,7 +67,7 @@ public class DrainCleanerST extends AbstractST {
         LOGGER.info("Creating dummy pod.");
         createStatefulSetAndPDBWithWait(stsName, labels);
 
-        LOGGER.info("Creating eviction request to the pod");
+        LOGGER.info("Creating eviction request to the pod.");
         ObjectMeta meta = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata();
 
         kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(meta.getName())
