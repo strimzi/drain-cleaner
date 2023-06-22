@@ -66,10 +66,12 @@ public class ValidatingWebhook {
     }
 
     private boolean matchingLabel(Map<String, String> labels) {
-        if (labels.get(STRIMZI_LABEL_KEY) != null)
+        if (labels != null && labels.get(STRIMZI_LABEL_KEY) != null) {
             return drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
                     || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches();
-        return false;
+        } else {
+            return false;
+        }
     }
 
     @POST
@@ -81,25 +83,31 @@ public class ValidatingWebhook {
         AdmissionRequest request = review.getRequest();
         ObjectMeta evictionMetadata = extractEvictionMetadata(request);
 
-        if (evictionMetadata != null) {
-            if (matchingLabel(evictionMetadata.getLabels())) {
-                String name = evictionMetadata.getName();
-                String namespace = evictionMetadata.getNamespace();
-                if (namespace == null) {
-                    // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
-                    // request without the namespace. In such case, we use the namespace form the AdmissionRequest.
-                    LOG.warn("There is no namespace in the Eviction request - trying to use namespace of the Admission request");
-                    namespace = request.getNamespace();
-                }
+        if (evictionMetadata != null && evictionMetadata.getNamespace() != null) {
+            String name = evictionMetadata.getName();
+            String namespace = evictionMetadata.getNamespace();
 
-                if (name == null || namespace == null) {
-                    LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
+            Pod pod = client.pods().inNamespace(namespace).withName(name).get();
+            if (pod != null) {
+                if (matchingLabel(pod.getMetadata().getLabels())) {
+                    if (namespace == null) {
+                        // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
+                        // request without the namespace. In such case, we use the namespace form the AdmissionRequest.
+                        LOG.warn("There is no namespace in the Eviction request - trying to use namespace of the Admission request");
+                        namespace = request.getNamespace();
+                    }
+
+                    if (name == null || namespace == null) {
+                        LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
+                    } else {
+                        LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
+                        annotatePodForRestart(name, namespace, request.getDryRun());
+                    }
                 } else {
-                    LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
-                    annotatePodForRestart(name, namespace, request.getDryRun());
+                    LOG.info("Received eviction event which does not match any relevant pods.");
                 }
             } else {
-                LOG.info("Received eviction event which does not match any relevant pods.");
+                LOG.warn("no pod has been found with name {} in namespace {}", name, namespace);
             }
         } else {
             LOG.warn("Weird, this does not seem to be an Eviction webhook.");
