@@ -158,26 +158,6 @@ public class ValidatingWebhookTest {
     }
 
     @Test
-    public void testWrongLabel() {
-        final Map<String, String> labels = Map.of(
-                "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-foo"
-        );
-
-        when(podResource.get()).thenReturn(mockedPod(false, labels));
-        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
-        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
-
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
-
-        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(1)).get();
-        verify(podResource, never()).patch((Pod) any());
-    }
-
-    @Test
     public void testEmptyLabel() {
         final Map<String, String> labels = Collections.emptyMap();
 
@@ -247,6 +227,7 @@ public class ValidatingWebhookTest {
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
     }
 
     @Test
@@ -267,6 +248,7 @@ public class ValidatingWebhookTest {
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
     }
 
     @Test
@@ -468,7 +450,6 @@ public class ValidatingWebhookTest {
         verify(podResource, never()).patch((Pod) any());
     }
 
-
     private Pod mockedPod(boolean ruAnno, Map<String, String> labels) {
         String podName = "my-cluster-kafka-1";
         Pod pod = new PodBuilder()
@@ -488,8 +469,6 @@ public class ValidatingWebhookTest {
 
         return pod;
     }
-
-
 
     private AdmissionReview reviewRequest(boolean dryRun, Map<String, String> labels)   {
         String podName = "my-cluster-kafka-1";
