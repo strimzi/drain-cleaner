@@ -68,8 +68,8 @@ public class ValidatingWebhook {
 
     private boolean matchingLabel(Map<String, String> labels) {
         if (labels != null && labels.get(STRIMZI_LABEL_KEY) != null
-                && "Kafka".equals(labels.get("strimzi.io/kind"))){
-                return drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
+                && "Kafka".equals(labels.get("strimzi.io/kind"))) {
+            return drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
                         || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches();
         } else {
             return false;
