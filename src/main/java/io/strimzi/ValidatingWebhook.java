@@ -67,9 +67,10 @@ public class ValidatingWebhook {
     }
 
     private boolean matchingLabel(Map<String, String> labels) {
-        if (labels != null && labels.get(STRIMZI_LABEL_KEY) != null) {
-            return drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
-                    || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches();
+        if (labels != null && labels.get(STRIMZI_LABEL_KEY) != null
+                && "Kafka".equals(labels.get("strimzi.io/kind"))){
+                return drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
+                        || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches();
         } else {
             return false;
         }
@@ -121,10 +122,7 @@ public class ValidatingWebhook {
     void annotatePodForRestart(Pod pod, boolean dryRun) {
         String name = pod.getMetadata().getName();
         String namespace = pod.getMetadata().getNamespace();
-        if (pod.getMetadata() != null
-                && pod.getMetadata().getLabels() != null
-                && "Kafka".equals(pod.getMetadata().getLabels().get("strimzi.io/kind"))) {
-
+        if (pod.getMetadata() != null) {
             if (pod.getMetadata().getAnnotations() == null) {
                 pod.getMetadata().setAnnotations(Map.of("strimzi.io/manual-rolling-update", "true"));
                 LOG.info("Pod {} in namespace {} should be annotated for restart", name, namespace);
