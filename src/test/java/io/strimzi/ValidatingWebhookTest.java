@@ -67,7 +67,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
     }
@@ -84,7 +84,6 @@ public class ValidatingWebhookTest {
                 .withNewMetadata()
                     .withName(podName)
                     .withNamespace("my-namespace")
-                    .withLabels(labels)
                 .endMetadata()
                 .build());
         admissionRequest.setDryRun(false);
@@ -103,7 +102,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
     }
@@ -126,7 +125,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().size(), is(1));
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
@@ -150,7 +149,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().size(), is(3));
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
@@ -246,7 +245,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
     }
 
@@ -266,7 +265,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
     }
 
@@ -362,7 +361,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, never()).patch((Pod) any());
     }
 
@@ -397,7 +396,7 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
+        verify(podResource, times(1)).get();
         verify(podResource, never()).patch((Pod) any());
     }
 
@@ -412,7 +411,6 @@ public class ValidatingWebhookTest {
         admissionRequest.setObject(new EvictionBuilder()
                 .withNewMetadata()
                 .withName(podName)
-                .withLabels(labels)
                 .endMetadata()
                 .build());
         admissionRequest.setDryRun(false);
@@ -432,8 +430,9 @@ public class ValidatingWebhookTest {
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, never()).get();
-        verify(podResource, never()).patch((Pod) any());
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
     }
 
     @Test
@@ -446,7 +445,7 @@ public class ValidatingWebhookTest {
         AdmissionRequest admissionRequest = new AdmissionRequest();
         admissionRequest.setObject(new EvictionBuilder()
                 .withNewMetadata()
-                .withName(podName)
+                    .withName(podName)
                 .endMetadata()
                 .build());
         admissionRequest.setDryRun(false);
@@ -469,12 +468,14 @@ public class ValidatingWebhookTest {
         verify(podResource, never()).patch((Pod) any());
     }
 
+
     private Pod mockedPod(boolean ruAnno, Map<String, String> labels) {
         String podName = "my-cluster-kafka-1";
         Pod pod = new PodBuilder()
                 .withNewMetadata()
                     .withName(podName)
                     .withLabels(labels)
+                    .withNamespace("my-namespace")
                     .withAnnotations(Collections.emptyMap())
                 .endMetadata()
                 .withNewSpec()
