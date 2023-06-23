@@ -83,7 +83,7 @@ public class ValidatingWebhook {
         AdmissionRequest request = review.getRequest();
         ObjectMeta evictionMetadata = extractEvictionMetadata(request);
 
-        if (evictionMetadata != null && evictionMetadata.getNamespace() != null) {
+        if (evictionMetadata != null && (evictionMetadata.getNamespace() != null || evictionMetadata.getNamespace().length() > 0) &&  (evictionMetadata.getName() != null || evictionMetadata.getName().length() > 0)) {
             String name = evictionMetadata.getName();
             String namespace = evictionMetadata.getNamespace();
 
@@ -101,7 +101,7 @@ public class ValidatingWebhook {
                         LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
                     } else {
                         LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
-                        annotatePodForRestart(name, namespace, request.getDryRun());
+                        annotatePodForRestart(pod, request.getDryRun());
                     }
                 } else {
                     LOG.info("Received eviction event which does not match any relevant pods.");
@@ -120,8 +120,9 @@ public class ValidatingWebhook {
                 .build();
     }
 
-    void annotatePodForRestart(String name, String namespace, boolean dryRun)    {
-        Pod pod = client.pods().inNamespace(namespace).withName(name).get();
+    void annotatePodForRestart(Pod pod , boolean dryRun)    {
+        String name = pod.getMetadata().getName();
+        String namespace = pod.getMetadata().getNamespace();
 
         if (pod != null) {
             if (pod.getMetadata() != null
