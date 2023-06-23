@@ -82,8 +82,7 @@ public class ValidatingWebhook {
 
         AdmissionRequest request = review.getRequest();
         ObjectMeta evictionMetadata = extractEvictionMetadata(request);
-
-        if (evictionMetadata != null && (evictionMetadata.getNamespace() != null || evictionMetadata.getNamespace().length() > 0) &&  (evictionMetadata.getName() != null || evictionMetadata.getName().length() > 0)) {
+        if (evictionMetadata != null && (evictionMetadata.getNamespace() != null && evictionMetadata.getNamespace().length() > 0) &&  (evictionMetadata.getName() != null && evictionMetadata.getName().length() > 0) || (request.getNamespace() != null && request.getNamespace().length() > 0)) {
             String name = evictionMetadata.getName();
             String namespace = evictionMetadata.getNamespace();
 
