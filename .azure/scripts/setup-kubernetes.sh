@@ -4,6 +4,7 @@ set -xe
 rm -rf ~/.kube
 
 KUBE_VERSION=${KUBE_VERSION:-1.21.0}
+MINIKUBE_REGISTRY_IMAGE=${REGISTRY_IMAGE:-"registry"}
 COPY_DOCKER_LOGIN=${COPY_DOCKER_LOGIN:-"false"}
 
 DEFAULT_MINIKUBE_MEMORY=$(free -m | grep "Mem" | awk '{print $2}')
@@ -15,21 +16,17 @@ MINIKUBE_CPU=${MINIKUBE_CPU:-$DEFAULT_MINIKUBE_CPU}
 echo "[INFO] MINIKUBE_MEMORY: ${MINIKUBE_MEMORY}"
 echo "[INFO] MINIKUBE_CPU: ${MINIKUBE_CPU}"
 
-function install_kubectl {
-    if [ "${KUBECTL_VERSION:-latest}" = "latest" ]; then
-        KUBECTL_VERSION=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
-    fi
-    curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl && chmod +x kubectl
-    sudo cp kubectl /usr/local/bin
-}
+ARCH=$1
+if [ -z "$ARCH" ]; then
+    ARCH="amd64"
+fi
 
-function install_nsenter {
-    # Pre-req for helm
-    curl https://mirrors.edge.kernel.org/pub/linux/utils/util-linux/v${NSENTER_VERSION}/util-linux-${NSENTER_VERSION}.tar.gz -k | tar -zxf-
-    cd util-linux-${NSENTER_VERSION}
-    ./configure --without-ncurses
-    make nsenter
-    sudo cp nsenter /usr/bin
+function install_kubectl {
+    if [ "${TEST_KUBECTL_VERSION:-latest}" = "latest" ]; then
+        TEST_KUBECTL_VERSION=$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)
+    fi
+    curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${TEST_KUBECTL_VERSION}/bin/linux/${ARCH}/kubectl && chmod +x kubectl
+    sudo cp kubectl /usr/local/bin
 }
 
 function label_node {
@@ -41,20 +38,20 @@ function label_node {
 	done
 }
 
-if [ "$KUBE_CLUSTER" = "minikube" ]; then
+if [ "$TEST_CLUSTER" = "minikube" ]; then
     install_kubectl
-    if [ "${MINIKUBE_VERSION:-latest}" = "latest" ]; then
-        MINIKUBE_URL=https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    if [ "${TEST_MINIKUBE_VERSION:-latest}" = "latest" ]; then
+        TEST_MINIKUBE_URL=https://storage.googleapis.com/minikube/releases/latest/minikube-linux-${ARCH}
     else
-        MINIKUBE_URL=https://github.com/kubernetes/minikube/releases/download/${MINIKUBE_VERSION}/minikube-linux-amd64
+        TEST_MINIKUBE_URL=https://github.com/kubernetes/minikube/releases/download/${TEST_MINIKUBE_VERSION}/minikube-linux-${ARCH}
     fi
 
     if [ "$KUBE_VERSION" != "latest" ] && [ "$KUBE_VERSION" != "stable" ]; then
         KUBE_VERSION="v${KUBE_VERSION}"
     fi
 
-    curl -Lo minikube ${MINIKUBE_URL} && chmod +x minikube
-    sudo cp minikube /usr/bin
+    curl -Lo minikube ${TEST_MINIKUBE_URL} && chmod +x minikube
+    sudo cp minikube /usr/local/bin
 
     export MINIKUBE_WANTUPDATENOTIFICATION=false
     export MINIKUBE_WANTREPORTERRORPROMPT=false
@@ -64,7 +61,7 @@ if [ "$KUBE_CLUSTER" = "minikube" ]; then
     mkdir $HOME/.kube || true
     touch $HOME/.kube/config
 
-    docker run -d -p 5000:5000 registry
+    docker run -d -p 5000:5000 ${MINIKUBE_REGISTRY_IMAGE}
 
     export KUBECONFIG=$HOME/.kube/config
     # We can turn on network polices support by adding the following options --network-plugin=cni --cni=calico
@@ -72,7 +69,7 @@ if [ "$KUBE_CLUSTER" = "minikube" ]; then
     # We can allow NP after Strimzi#4092 which should fix some issues on STs side
     minikube start --vm-driver=docker --kubernetes-version=${KUBE_VERSION} \
       --insecure-registry=localhost:5000 --extra-config=apiserver.authorization-mode=Node,RBAC \
-      --cpus=${MINIKUBE_CPU} --memory=${MINIKUBE_MEMORY}
+      --cpus=${MINIKUBE_CPU} --memory=${MINIKUBE_MEMORY} --force
 
     if [ $? -ne 0 ]
     then
@@ -97,7 +94,7 @@ if [ "$KUBE_CLUSTER" = "minikube" ]; then
 
     kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
 else
-    echo "Unsupported KUBE_CLUSTER '$KUBE_CLUSTER'"
+    echo "Unsupported TEST_CLUSTER '$TEST_CLUSTER'"
     exit 1
 fi
 
