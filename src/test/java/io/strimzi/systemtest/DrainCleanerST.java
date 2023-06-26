@@ -13,9 +13,7 @@ import io.strimzi.utils.StUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
-
 import java.util.Map;
-
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -28,9 +26,14 @@ public class DrainCleanerST extends AbstractST {
     @Test
     void testEvictionRequestOnKafkaPod() {
         final String stsName = "my-cluster-kafka";
+        final Map<String, String> labels = Map.of(
+                "app", stsName,
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
 
-        LOGGER.info("Creating dummy pod that will contain \"kafka\" in its name.");
-        createStatefulSetAndPDBWithWait(stsName);
+        LOGGER.info("Creating dummy pod.");
+        createStatefulSetAndPDBWithWait(stsName, labels);
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
@@ -47,9 +50,13 @@ public class DrainCleanerST extends AbstractST {
     @Test
     void testEvictionRequestOnRandomPod() {
         final String stsName = "my-cluster-pulsar";
+        final Map<String, String> labels = Map.of(
+                "app", stsName,
+                "strimzi.io/kind", "Kafka"
+        );
 
-        LOGGER.info("Creating dummy pod that will not contain \"kafka\" or \"zookeeper\" in its name.");
-        createStatefulSetAndPDBWithWait(stsName);
+        LOGGER.info("Creating dummy pod.");
+        createStatefulSetAndPDBWithWait(stsName, labels);
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
@@ -59,7 +66,7 @@ public class DrainCleanerST extends AbstractST {
         StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
     }
 
-    void createStatefulSetAndPDBWithWait(String stsName) {
+    void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> labels) {
         StatefulSet statefulSet = new StatefulSetBuilder()
             .withNewMetadata()
                 .withName(stsName)
@@ -68,14 +75,13 @@ public class DrainCleanerST extends AbstractST {
             .withNewSpec()
                 .withReplicas(1)
                 .withNewSelector()
-                    .addToMatchLabels("app", stsName)
+                    .addToMatchLabels(labels)
                 .endSelector()
                 .withNewTemplate()
                     .withNewMetadata()
+                        .addToLabels(labels)
                         .addToAnnotations("dummy-annotation", "some-value")
-                        .addToLabels("app", stsName)
-                        .addToLabels("strimzi.io/kind", "Kafka")
-                    .endMetadata()
+                .endMetadata()
                     .withNewSpec()
                         .addNewContainer()
                             .withName("nginx-container")
@@ -103,3 +109,4 @@ public class DrainCleanerST extends AbstractST {
         StUtils.createPodDisruptionBudgetWithWait(pdb);
     }
 }
+
