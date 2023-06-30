@@ -5,4 +5,7 @@ metadata:
   name: {{ .Values.namespace.name }}
   labels:
     {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+    {{- with .Values.namespace.extraLabels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
 {{- end }}

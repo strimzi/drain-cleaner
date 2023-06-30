@@ -9,7 +9,7 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 0.4.2
+  tag: 0.5.0
   pullPolicy: ""
 
 serviceAccount:
@@ -34,6 +34,8 @@ secret:
 namespace:
   create: true
   name: strimzi-drain-cleaner
+  # Extra lables to add to the namespace
+  extraLabels: {}
 
 args:
   - /opt/strimzi/bin/drain_cleaner_run.sh
