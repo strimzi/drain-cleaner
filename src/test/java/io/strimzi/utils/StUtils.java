@@ -13,6 +13,11 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.readiness.Readiness;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import io.strimzi.utils.k8s.exception.WaitException;
@@ -251,6 +256,13 @@ public final class StUtils {
             });
     }
 
+    public static void waitForSecretReady(String namespaceName, String secretName) {
+        LOGGER.info("Waiting for Secret: {}/{} to exist", namespaceName, secretName);
+        waitFor("Secret: " + secretName + " to exist", GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT,
+            () -> kubeClient(namespaceName).getClient().secrets().inNamespace(namespaceName).withName(secretName) != null);
+        LOGGER.info("Secret: {}/{} created", namespaceName, secretName);
+    }
+
     public static <T> T configFromYaml(File yamlFile, Class<T> c) {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try {
@@ -297,5 +309,20 @@ public final class StUtils {
             return envVar;
         }
         return current;
+    }
+
+    public static String readResource(InputStream stream) {
+        StringBuilder textBuilder = new StringBuilder();
+        try (Reader reader = new BufferedReader(new InputStreamReader(
+                stream, StandardCharsets.UTF_8)
+        )) {
+            int character;
+            while ((character = reader.read()) != -1) {
+                textBuilder.append((char) character);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return textBuilder.toString();
     }
 }

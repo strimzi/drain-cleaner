@@ -4,18 +4,24 @@
  */
 package io.strimzi.systemtest;
 
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.strimzi.utils.Constants;
 import io.strimzi.utils.StUtils;
+import java.io.InputStream;
+import java.util.Base64;
+import java.util.HashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import java.util.Map;
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class DrainCleanerST extends AbstractST {
 
@@ -64,6 +70,34 @@ public class DrainCleanerST extends AbstractST {
 
         LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
         StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
+    }
+
+    @Test
+    void testReloadCertificate() {
+        String secretName = "strimzi-drain-cleaner";
+
+        Secret oldSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
+        String oldTlsCrt = oldSecret.getData().get("tls.crt");
+
+        InputStream caCertStream = getClass().getClassLoader().getResourceAsStream("st-certs/ca.crt");
+        InputStream caKeyStream = getClass().getClassLoader().getResourceAsStream("st-certs/ca.key");
+
+        final Map<String, String> newSecretData = new HashMap<>();
+        newSecretData.put("tls.crt", Base64.getEncoder().encodeToString(StUtils.readResource(caCertStream).getBytes()));
+        newSecretData.put("tls.key", Base64.getEncoder().encodeToString(StUtils.readResource(caKeyStream).getBytes()));
+
+        Secret newSecret = new SecretBuilder(oldSecret)
+            .withData(newSecretData)
+            .build();
+
+        kubeClient().getClient().secrets().resource(newSecret).update();
+        StUtils.waitForSecretReady(Constants.NAMESPACE, secretName);
+        StUtils.waitForDeploymentReady(Constants.NAMESPACE, StUtils.DRAIN_CLEANER_DEPLOYMENT_NAME);
+
+        Secret currentSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
+
+        assertEquals(currentSecret.getData().get("tls.crt"), newSecretData.get("tls.crt"));
+        assertNotEquals(currentSecret.getData().get("tls.crt"), oldTlsCrt);
     }
 
     void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> labels) {
