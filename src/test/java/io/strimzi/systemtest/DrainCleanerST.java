@@ -5,16 +5,13 @@
 package io.strimzi.systemtest;
 
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.strimzi.utils.Constants;
+import io.strimzi.utils.SecretUtils;
 import io.strimzi.utils.StUtils;
-import java.io.InputStream;
-import java.util.Base64;
-import java.util.HashMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
@@ -79,25 +76,16 @@ public class DrainCleanerST extends AbstractST {
         String secretName = "strimzi-drain-cleaner";
         Secret oldSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
 
-        InputStream caCertStream = getClass().getClassLoader().getResourceAsStream("st-certs/ca.crt");
-        InputStream caKeyStream = getClass().getClassLoader().getResourceAsStream("st-certs/ca.key");
-
-        final Map<String, String> newSecretData = new HashMap<>();
-        newSecretData.put("tls.crt", Base64.getEncoder().encodeToString(StUtils.readResource(caCertStream).getBytes()));
-        newSecretData.put("tls.key", Base64.getEncoder().encodeToString(StUtils.readResource(caKeyStream).getBytes()));
-
-        Secret newSecret = new SecretBuilder(oldSecret)
-            .withData(newSecretData)
-            .build();
+        Secret newSecret = SecretUtils.createDrainCleanerSecret().build();
 
         kubeClient().getClient().secrets().resource(newSecret).update();
 
         StUtils.waitForSecretReady(Constants.NAMESPACE, secretName);
         Secret currentSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
-        assertEquals(currentSecret.getData().get("tls.crt"), newSecretData.get("tls.crt"));
+        assertEquals(currentSecret.getData().get("tls.crt"), newSecret.getData().get("tls.crt"));
         assertNotEquals(currentSecret.getData().get("tls.crt"), oldSecret.getData().get("tls.crt"));
 
-        StUtils.waitTillDrainCleanerHasRolledAndPodsReady(Constants.NAMESPACE, 1, drainCleanerSnapshot);
+        StUtils.waitTillDrainCleanerHasRolledAndPodsReady(Constants.NAMESPACE, StUtils.DRAIN_CLEANER_LABEL_SELECTOR, 1, drainCleanerSnapshot);
     }
 
     void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> labels) {

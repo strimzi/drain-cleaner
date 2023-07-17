@@ -13,11 +13,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.client.readiness.Readiness;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.TreeMap;
 import org.apache.logging.log4j.Logger;
@@ -318,21 +313,6 @@ public final class StUtils {
         return current;
     }
 
-    public static String readResource(InputStream stream) {
-        StringBuilder textBuilder = new StringBuilder();
-        try (Reader reader = new BufferedReader(new InputStreamReader(
-                stream, StandardCharsets.UTF_8)
-        )) {
-            int character;
-            while ((character = reader.read()) != -1) {
-                textBuilder.append((char) character);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return textBuilder.toString();
-    }
-
     public static Map<String, String> podSnapshot(String namespaceName, LabelSelector selector) {
         List<Pod> pods = kubeClient(namespaceName).listPods(namespaceName, selector);
         return pods.stream()
@@ -341,14 +321,13 @@ public final class StUtils {
                     pod -> pod.getMetadata().getUid()));
     }
 
-    public static Map<String, String> waitTillDrainCleanerHasRolledAndPodsReady(String namespaceName, int expectedPods, Map<String, String> snapshot) {
-        String drainCleanerName = DRAIN_CLEANER_LABEL_SELECTOR.getMatchLabels().get(APP_LABEL_NAME);
+    public static Map<String, String> waitTillDrainCleanerHasRolledAndPodsReady(String namespaceName, LabelSelector selector, int expectedPods, Map<String, String> snapshot) {
+        String drainCleanerName = selector.getMatchLabels().get(APP_LABEL_NAME);
 
-        //waitTillComponentHasRolled(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR, snapshot);
-        waitFor("rolling update of Drain Cleaner: " + namespaceName + "/" + drainCleanerName,
+        waitFor("rolling update of componentr: " + namespaceName + "/" + drainCleanerName,
             GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT, () -> {
                 try {
-                    return componentHasRolled(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR, snapshot);
+                    return componentHasRolled(namespaceName, selector, snapshot);
                 } catch (Exception e) {
                     e.printStackTrace();
                     return false;
@@ -356,9 +335,9 @@ public final class StUtils {
             });
 
         LOGGER.info("Waiting for {} Pod(s) of {}/{} to be ready", expectedPods, namespaceName, drainCleanerName);
-        waitForPodsReady(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR, expectedPods, true);
+        waitForPodsReady(namespaceName, selector, expectedPods, true);
 
-        return podSnapshot(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR);
+        return podSnapshot(namespaceName, selector);
     }
 
     public static boolean componentHasRolled(String namespaceName, LabelSelector selector, Map<String, String> snapshot) {
