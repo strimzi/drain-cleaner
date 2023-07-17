@@ -74,10 +74,10 @@ public class DrainCleanerST extends AbstractST {
 
     @Test
     void testReloadCertificate() {
-        String secretName = "strimzi-drain-cleaner";
+        Map<String, String> drainCleanerSnapshot = StUtils.podSnapshot(Constants.NAMESPACE, StUtils.DRAIN_CLEANER_LABEL_SELECTOR);
 
+        String secretName = "strimzi-drain-cleaner";
         Secret oldSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
-        String oldTlsCrt = oldSecret.getData().get("tls.crt");
 
         InputStream caCertStream = getClass().getClassLoader().getResourceAsStream("st-certs/ca.crt");
         InputStream caKeyStream = getClass().getClassLoader().getResourceAsStream("st-certs/ca.key");
@@ -91,13 +91,13 @@ public class DrainCleanerST extends AbstractST {
             .build();
 
         kubeClient().getClient().secrets().resource(newSecret).update();
+
         StUtils.waitForSecretReady(Constants.NAMESPACE, secretName);
-        StUtils.waitForDeploymentReady(Constants.NAMESPACE, StUtils.DRAIN_CLEANER_DEPLOYMENT_NAME);
-
         Secret currentSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
-
         assertEquals(currentSecret.getData().get("tls.crt"), newSecretData.get("tls.crt"));
-        assertNotEquals(currentSecret.getData().get("tls.crt"), oldTlsCrt);
+        assertNotEquals(currentSecret.getData().get("tls.crt"), oldSecret.getData().get("tls.crt"));
+
+        StUtils.waitTillDrainCleanerHasRolledAndPodsReady(Constants.NAMESPACE, 1, drainCleanerSnapshot);
     }
 
     void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> labels) {

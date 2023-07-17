@@ -18,6 +18,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.TreeMap;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.LogManager;
 import io.strimzi.utils.k8s.exception.WaitException;
@@ -38,7 +40,7 @@ import static io.strimzi.utils.k8s.KubeClusterResource.cmdKubeClient;
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:CyclomaticComplexity", "checkstyle:NPathComplexity"})
+@SuppressWarnings({"checkstyle:ClassFanOutComplexity", "checkstyle:CyclomaticComplexity", "checkstyle:NPathComplexity", "checkstyle:ClassDataAbstractionCoupling"})
 public final class StUtils {
 
     private static final Logger LOGGER = LogManager.getLogger(StUtils.class);
@@ -47,6 +49,11 @@ public final class StUtils {
     public static final long GLOBAL_POLL_INTERVAL = Duration.ofSeconds(1).toMillis();
 
     public static final String DRAIN_CLEANER_DEPLOYMENT_NAME = "strimzi-drain-cleaner";
+
+    public static final String APP_LABEL_NAME = "app";
+    public static final String DRAIN_CLEANER_LABEL_NAME = "strimzi-drain-cleaner";
+
+    public static final LabelSelector DRAIN_CLEANER_LABEL_SELECTOR = new LabelSelector(null, Map.of(APP_LABEL_NAME, DRAIN_CLEANER_LABEL_NAME));
     public static final String DRAIN_CLEANER_NAMESPACE = DRAIN_CLEANER_DEPLOYMENT_NAME;
 
     public static final int POLL_TIME = 60;
@@ -325,4 +332,59 @@ public final class StUtils {
         }
         return textBuilder.toString();
     }
+
+    public static Map<String, String> podSnapshot(String namespaceName, LabelSelector selector) {
+        List<Pod> pods = kubeClient(namespaceName).listPods(namespaceName, selector);
+        return pods.stream()
+            .collect(
+                Collectors.toMap(pod -> pod.getMetadata().getName(),
+                    pod -> pod.getMetadata().getUid()));
+    }
+
+    public static Map<String, String> waitTillDrainCleanerHasRolledAndPodsReady(String namespaceName, int expectedPods, Map<String, String> snapshot) {
+        String drainCleanerName = DRAIN_CLEANER_LABEL_SELECTOR.getMatchLabels().get(APP_LABEL_NAME);
+
+        //waitTillComponentHasRolled(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR, snapshot);
+        waitFor("rolling update of Drain Cleaner: " + namespaceName + "/" + drainCleanerName,
+            GLOBAL_POLL_INTERVAL, GLOBAL_TIMEOUT, () -> {
+                try {
+                    return componentHasRolled(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR, snapshot);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            });
+
+        LOGGER.info("Waiting for {} Pod(s) of {}/{} to be ready", expectedPods, namespaceName, drainCleanerName);
+        waitForPodsReady(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR, expectedPods, true);
+
+        return podSnapshot(namespaceName, DRAIN_CLEANER_LABEL_SELECTOR);
+    }
+
+    public static boolean componentHasRolled(String namespaceName, LabelSelector selector, Map<String, String> snapshot) {
+        LOGGER.debug("Existing snapshot: {}/{}", namespaceName, new TreeMap<>(snapshot));
+
+        Map<String, String> currentSnapshot = podSnapshot(namespaceName, selector);
+
+        LOGGER.debug("Current snapshot: {}/{}", namespaceName, new TreeMap<>(currentSnapshot));
+        // rolled when all the Pods in snapshot have a different version in map
+
+        currentSnapshot.keySet().retainAll(snapshot.keySet());
+
+        LOGGER.debug("Pods in common: {}/{}", namespaceName, new TreeMap<>(currentSnapshot));
+        for (Map.Entry<String, String> podSnapshot : currentSnapshot.entrySet()) {
+            String currentPodVersion = podSnapshot.getValue();
+            String podName = podSnapshot.getKey();
+            String oldPodVersion = snapshot.get(podName);
+            if (oldPodVersion.equals(currentPodVersion)) {
+                LOGGER.debug("At least {}/{} hasn't rolled", namespaceName, podName);
+                return false;
+            }
+        }
+
+        LOGGER.debug("All Pods seem to have rolled");
+        return true;
+    }
+
+
 }
