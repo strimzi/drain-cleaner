@@ -74,14 +74,14 @@ public class DrainCleanerST extends AbstractST {
         Map<String, String> drainCleanerSnapshot = StUtils.podSnapshot(Constants.NAMESPACE, StUtils.DRAIN_CLEANER_LABEL_SELECTOR);
 
         String secretName = "strimzi-drain-cleaner";
-        Secret oldSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
+        Secret oldSecret = kubeClient().getClient().secrets().inNamespace(Constants.NAMESPACE).withName(secretName).get();
 
         Secret newSecret = SecretUtils.createDrainCleanerSecret().build();
 
         kubeClient().getClient().secrets().resource(newSecret).update();
 
         StUtils.waitForSecretReady(Constants.NAMESPACE, secretName);
-        Secret currentSecret = kubeClient(Constants.NAMESPACE).getClient().secrets().withName(secretName).get();
+        Secret currentSecret = kubeClient().getClient().secrets().inNamespace(Constants.NAMESPACE).withName(secretName).get();
         assertEquals(currentSecret.getData().get("tls.crt"), newSecret.getData().get("tls.crt"));
         assertNotEquals(currentSecret.getData().get("tls.crt"), oldSecret.getData().get("tls.crt"));
 
