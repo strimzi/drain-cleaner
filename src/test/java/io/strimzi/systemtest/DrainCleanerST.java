@@ -4,11 +4,13 @@
  */
 package io.strimzi.systemtest;
 
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
 import io.strimzi.utils.Constants;
+import io.strimzi.utils.SecretUtils;
 import io.strimzi.utils.StUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 public class DrainCleanerST extends AbstractST {
 
@@ -64,6 +67,25 @@ public class DrainCleanerST extends AbstractST {
 
         LOGGER.info("Checking that pod annotations will not contain \"{}\"", MANUAL_RU_ANNO);
         StUtils.waitForAnnotationToNotAppear(Constants.NAMESPACE, podName, MANUAL_RU_ANNO);
+    }
+
+    @Test
+    void testReloadCertificate() {
+        Map<String, String> drainCleanerSnapshot = StUtils.podSnapshot(Constants.NAMESPACE, StUtils.DRAIN_CLEANER_LABEL_SELECTOR);
+
+        String secretName = "strimzi-drain-cleaner";
+        Secret oldSecret = kubeClient().getClient().secrets().inNamespace(Constants.NAMESPACE).withName(secretName).get();
+
+        Secret newSecret = SecretUtils.createDrainCleanerSecret().build();
+
+        kubeClient().getClient().secrets().resource(newSecret).update();
+
+        StUtils.waitForSecretReady(Constants.NAMESPACE, secretName);
+        Secret currentSecret = kubeClient().getClient().secrets().inNamespace(Constants.NAMESPACE).withName(secretName).get();
+        assertEquals(currentSecret.getData().get("tls.crt"), newSecret.getData().get("tls.crt"));
+        assertNotEquals(currentSecret.getData().get("tls.crt"), oldSecret.getData().get("tls.crt"));
+
+        StUtils.waitTillDrainCleanerHasRolledAndPodsReady(Constants.NAMESPACE, StUtils.DRAIN_CLEANER_LABEL_SELECTOR, 1, drainCleanerSnapshot);
     }
 
     void createStatefulSetAndPDBWithWait(String stsName, Map<String, String> labels) {
