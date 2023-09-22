@@ -50,6 +50,11 @@ docker_push: docker_tag
 	# Push the $(DOCKER_TAG)-tagged image to the registry
 	docker push $(DOCKER_REGISTRY)/$(DOCKER_ORG)/$(PROJECT_NAME):$(DOCKER_TAG)$(DOCKER_PLATFORM_TAG_SUFFIX)
 
+.PHONY: docker_delete_archive
+docker_delete_archive:
+	# Deletes the archive
+	rm drain-cleaner-container$(DOCKER_PLATFORM_TAG_SUFFIX).tar.gz
+
 .PHONY: docker_amend_manifest
 docker_amend_manifest:
 	# Create / Amend the manifest
