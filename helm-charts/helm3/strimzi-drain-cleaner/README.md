@@ -101,16 +101,10 @@ Strimzi is licensed under the [Apache License](https://github.com/strimzi/drain-
 
 ## Installing the Chart
 
-Add the Strimzi Helm Chart repository:
+To install the chart with the release name `my-strimzi-drain-cleaner`:
 
 ```bash
-$ helm repo add strimzi https://strimzi.io/charts/
-```
-
-To install the chart with the release name `my-release`:
-
-```bash
-$ helm install drain-cleaner strimzi/strimzi-drain-cleaner
+$ helm install my-strimzi-drain-cleaner oci://quay.io/strimzi-helm/strimzi-drain-cleaner
 ```
 
 The command deploys the Strimzi Drain Cleaner on the Kubernetes cluster with the default configuration.
@@ -119,10 +113,10 @@ The [configuration](#configuration) section lists the parameters that can be con
 
 ## Uninstalling the Chart
 
-To uninstall/delete the `drain-cleaner` deployment:
+To uninstall/delete the `my-strimzi-drain-cleaner` deployment:
 
 ```bash
-$ helm delete drain-cleaner
+$ helm delete my-strimzi-drain-cleaner
 ```
 
 The command removes all the Kubernetes components associated with the Drain Cleaner utility and deletes the release.
@@ -138,7 +132,7 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `image.registry`        | Override default Drain Cleaner image registry            | `quay.io`       |
 | `image.repository`      | Override default Drain Cleaner image repository          | `strimzi`       |
 | `image.name`            | Drain Cleaner image name                                 | `drain-cleaner` |
-| `image.tag`             | Override default Drain Cleaner image tag                 | `0.5.0`        |
+| `image.tag`             | Override default Drain Cleaner image tag                 | `1.0.0`        |
 | `image.imagePullPolicy` | Image pull policy for all pods deployed by Drain Cleaner | `nil`           |
 | `resources`             | Configures resources for the Drain Cleaner Pod           | `[]`            |
 | `tolerations`           | Add tolerations to Drain Cleaner Pod                     | `[]`            |
@@ -148,5 +142,5 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
 ```bash
-$ helm install --name drain-cleaner --set replicas=2 strimzi/strimzi-drain-cleaner
+$ helm install my-strimzi-drain-cleaner --set replicaCount=2 oci://quay.io/strimzi-helm/strimzi-drain-cleaner
 ```
