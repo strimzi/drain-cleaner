@@ -52,6 +52,10 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+labels: {}
+  # Specifies optional custom labels for Deployment and Pod.
+  # If you want to add custom labels, add them below and remove curly braces above.
+
 nodeSelector: {}
 
 tolerations: []

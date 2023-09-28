@@ -4,6 +4,9 @@ metadata:
   name: strimzi-drain-cleaner
   labels:
     {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+    {{- with .Values.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   namespace: {{ default .Release.Namespace .Values.namespace.name }}
 spec:
   replicas: {{ .Values.replicaCount | default 1 }}
@@ -14,6 +17,9 @@ spec:
     metadata:
       labels:
         {{- include "strimzi-drain-cleaner.selectorLabels" . | nindent 8 }}
+        {{- with .Values.labels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
       containers:
