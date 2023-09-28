@@ -52,6 +52,10 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+securityContext: {}
+  # Specifies optional security context, depending your environment prerequisites.
+  # If you want to specify security contexts add them below and remove curly braces above.
+
 labels: {}
   # Specifies optional custom labels for Deployment and Pod.
   # If you want to add custom labels, add them below and remove curly braces above.
