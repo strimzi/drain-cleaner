@@ -61,8 +61,12 @@ securityContext: {}
   # Specifies optional security context, depending your environment prerequisites.
   # If you want to specify security contexts add them below and remove curly braces above.
 
-labels: {}
-  # Specifies optional custom labels for Deployment and Pod.
+deploymentLabels: {}
+  # Specifies optional custom labels for Deployment.
+  # If you want to add custom labels, add them below and remove curly braces above.
+
+podLabels: {}
+  # Specifies optional custom labels for Pod.
   # If you want to add custom labels, add them below and remove curly braces above.
 
 nodeSelector: {}

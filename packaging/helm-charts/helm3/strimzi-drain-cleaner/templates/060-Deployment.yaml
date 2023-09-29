@@ -4,7 +4,7 @@ metadata:
   name: strimzi-drain-cleaner
   labels:
     {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
-    {{- with .Values.labels }}
+    {{- with .Values.deploymentLabels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
   namespace: {{ default .Release.Namespace .Values.namespace.name }}
@@ -17,7 +17,7 @@ spec:
     metadata:
       labels:
         {{- include "strimzi-drain-cleaner.selectorLabels" . | nindent 8 }}
-        {{- with .Values.labels }}
+        {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
