@@ -11,6 +11,7 @@ image:
   name: drain-cleaner
   tag: latest
   pullPolicy: ""
+  imagePullSecrets: []
 
 serviceAccount:
   # Specifies whether a service account should be created
