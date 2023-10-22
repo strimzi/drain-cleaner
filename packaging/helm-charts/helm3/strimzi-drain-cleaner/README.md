@@ -126,18 +126,19 @@ The command removes all the Kubernetes components associated with the Drain Clea
 The following table lists some available configurable parameters of the Strimzi chart and their default values.
 For a full list of supported options, check the [`values.yaml` file](./values.yaml).
 
-| Parameter               | Description                                              | Default         |
-|-------------------------|----------------------------------------------------------|-----------------|
-| `replicaCount`          | Number of replicas of the Drain Cleaner webhook          | 1               |
-| `image.registry`        | Override default Drain Cleaner image registry            | `quay.io`       |
-| `image.repository`      | Override default Drain Cleaner image repository          | `strimzi`       |
-| `image.name`            | Drain Cleaner image name                                 | `drain-cleaner` |
-| `image.tag`             | Override default Drain Cleaner image tag                 | `1.0.0`        |
-| `image.imagePullPolicy` | Image pull policy for all pods deployed by Drain Cleaner | `nil`           |
-| `resources`             | Configures resources for the Drain Cleaner Pod           | `[]`            |
-| `tolerations`           | Add tolerations to Drain Cleaner Pod                     | `[]`            |
-| `affinity`              | Add affinities to Drain Cleaner Pod                      | `{}`            |
-| `nodeSelector`          | Add a node selector to Drain Cleaner Pod                 | `{}`            |
+| Parameter                | Description                                              | Default         |
+|--------------------------|----------------------------------------------------------|-----------------|
+| `replicaCount`           | Number of replicas of the Drain Cleaner webhook          | 1               |
+| `image.registry`         | Override default Drain Cleaner image registry            | `quay.io`       |
+| `image.repository`       | Override default Drain Cleaner image repository          | `strimzi`       |
+| `image.name`             | Drain Cleaner image name                                 | `drain-cleaner` |
+| `image.tag`              | Override default Drain Cleaner image tag                 | `latest`        |
+| `image.imagePullPolicy`  | Image pull policy for all pods deployed by Drain Cleaner | `nil`           |
+| `image.imagePullSecrets` | List of Docker registry pull secrets                     | `[]`            |
+| `resources`              | Configures resources for the Drain Cleaner Pod           | `[]`            |
+| `tolerations`            | Add tolerations to Drain Cleaner Pod                     | `[]`            |
+| `affinity`               | Add affinities to Drain Cleaner Pod                      | `{}`            |
+| `nodeSelector`           | Add a node selector to Drain Cleaner Pod                 | `{}`            |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
