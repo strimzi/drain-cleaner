@@ -4,7 +4,7 @@ description: Utility which helps with moving the Apache Kafka pods deployed by S
 name: strimzi-drain-cleaner
 icon: https://raw.githubusercontent.com/strimzi/strimzi-kafka-operator/main/documentation/logo/strimzi_logo.png
 type: application
-version: 0.1.0
+version: 0.2.0
 home: https://strimzi.io/
 sources:
 - https://github.com/strimzi/drain-cleaner
