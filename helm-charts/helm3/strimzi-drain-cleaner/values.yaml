@@ -9,8 +9,9 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 1.0.0
+  tag: 1.0.1
   pullPolicy: ""
+  imagePullSecrets: []
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -34,8 +35,13 @@ secret:
 namespace:
   create: true
   name: strimzi-drain-cleaner
-  # Extra lables to add to the namespace
+  # Extra labels to add to the namespace
   extraLabels: {}
+
+podDisruptionBudget:
+  # Specifies whether a pod disruption budget should be created
+  create: false
+  minAvailable: 1
 
 args:
   - /opt/strimzi/bin/drain_cleaner_run.sh
@@ -51,6 +57,18 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
+
+securityContext: {}
+  # Specifies optional security context, depending your environment prerequisites.
+  # If you want to specify security contexts add them below and remove curly braces above.
+
+deploymentLabels: {}
+  # Specifies optional custom labels for Deployment.
+  # If you want to add custom labels, add them below and remove curly braces above.
+
+podLabels: {}
+  # Specifies optional custom labels for Pod.
+  # If you want to add custom labels, add them below and remove curly braces above.
 
 nodeSelector: {}
 
