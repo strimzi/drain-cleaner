@@ -1,0 +1,16 @@
+{{- if .Values.podDisruptionBudget.create -}}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: strimzi-drain-cleaner
+  labels:
+    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+  namespace: {{ default .Release.Namespace .Values.namespace.name }}
+spec:
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable | int }}
+  selector:
+    matchLabels:
+      {{- include "strimzi-drain-cleaner.selectorLabels" . | nindent 6 }}
+...
+{{- end }}
