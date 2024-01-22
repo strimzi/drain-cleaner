@@ -26,7 +26,7 @@
 
     <!-- Other versions - used in Test -->
     <log4j.version>2.17.2</log4j.version>
-    <jayway-jsonpath.version>2.8.0</jayway-jsonpath.version>
+    <jayway-jsonpath.version>2.9.0</jayway-jsonpath.version>
     <bouncycastle.version>1.76</bouncycastle.version>
   </properties>
   <dependencyManagement>
