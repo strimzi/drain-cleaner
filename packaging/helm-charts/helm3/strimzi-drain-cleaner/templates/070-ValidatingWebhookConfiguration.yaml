@@ -26,6 +26,7 @@ webhooks:
       caBundle: {{ .Values.secret.ca_bundle }}
       {{- end }}
     admissionReviewVersions: ["v1"]
+    namespaceSelector: {{ .Values.webhook.namespaceSelector }}
     sideEffects: None
     failurePolicy: Ignore
     timeoutSeconds: 5
