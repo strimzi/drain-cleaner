@@ -93,6 +93,3 @@ env:
     valueFrom:
       fieldRef:
         fieldPath: metadata.name
-
-webhook:
-  namespaceSelector: {}
