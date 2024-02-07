@@ -7,8 +7,7 @@ To use it:
 
 * Configure your Kafka topics to have replication factor higher than 1 and make sure the `min.insync.replicas` is always set to a number lower than the replication factor.
   Availability of topics with replication factor `1` or with `min.insync.replicas` set to the same value as the replication factor will always be affected when the brokers are restarted.
-* Deploy Kafka using Strimzi and configure the `PodDisruptionBudgets` for Kafka and ZooKeeper to have `maxUnavailable` set to `0`.
-  This will block Kubernetes from moving the pods on their own.
+* Deploy Kafka using Strimzi.
 
 ```yaml
 apiVersion: kafka.strimzi.io/v1beta2
@@ -38,18 +37,20 @@ spec:
         type: persistent-claim
         size: 100Gi
         deleteClaim: false
-    template:
-      podDisruptionBudget:
-        maxUnavailable: 0
+    # Uncomment when using the legacy mode 
+    # template:
+    #   podDisruptionBudget:
+    #     maxUnavailable: 0
   zookeeper:
     replicas: 3
     storage:
       type: persistent-claim
       size: 100Gi
       deleteClaim: false
-    template:
-      podDisruptionBudget:
-        maxUnavailable: 0
+    # Uncomment when using the legacy mode 
+    # template:
+    #   podDisruptionBudget:
+    #     maxUnavailable: 0
   entityOperator:
     topicOperator: {}
     userOperator: {}
@@ -61,24 +62,62 @@ spec:
 ## How does it work?
 
 Strimzi Drain Cleaner uses Kubernetes Admission Control features and Validating Web-hooks to find out when something tries to evict the Kafka or ZooKeeper pods.
-It annotates them with the `strimzi.io/manual-rolling-update` annotation which will tell Strimzi Cluster Operator that this pod needs to be restarted.
-Strimzi will roll it in the next reconciliation using its algorithms which make sure the cluster is available.
+When it receives the eviction request for one of the Strimzi managed Kafka or ZooKeeper pods, it annotates them with the `strimzi.io/manual-rolling-update` annotation which will tell Strimzi Cluster Operator that this pod needs to be restarted and denies the eviction request.
+Denying the eviction request prevents Kubernetes from restarting the Pod on their own based only on the `PodDisruptionBudget` configuration and leaves it to the Strimzi Cluster operator
+Strimzi Cluster Operator will roll it in the next reconciliation using its algorithms which make sure the cluster is available while the Pod is restarted.
+Strimzi Cluster Operator will always roll the pods one-by-one regardless of the Pod Disruption Policy settings.
 **This is supported from Strimzi 0.21.0.**
+
+### Legacy mode
+
+Different Kubernetes distributions and tools might react differently to the eviction request being denied.
+If the tools used by your Kubernetes cluster do not handle it well, you can switch the Drain Cleaner into a _legacy_ mode where the eviction requests will be allowed.
+To do so, you have to:
+* Edit the Drain Cleaner `Deployment` and set the `STRIMZI_DENY_EVICTION` environment variable to `false`.
+* Configure the `PodDisruptionBudgets` for Kafka and ZooKeeper to have `maxUnavailable` set to `0`.
+  You can configure this in the `Kafka` custom resource in `spec.kafka.template.podDisruptionBudget.maxUnavailable` and `spec.zookeeper.template.podDisruptionBudget.maxUnavailable`.
+
+Once running in the _legacy_ mode, the Drain Cleaner will still annotate the pods with the `strimzi.io/manual-rolling-update` annotation.
+But it will allow the eviction request.
+The eviction request will be ignored by Kubernetes because of the PodDisruptionBudget having `maxUnavailable` set to `0` and the Pod will be rolled by the Strimzi Cluster Operator.
 
 ## See it in action
 
 You can easily test how it works:
 * Install Strimzi on your cluster
-* Deploy Kafka cluster with Pod Disruption Budget configuration having `maxUnavailable` set to `0` as shown in the example above
+* Deploy Kafka cluster
 * Install the Drain Cleaner
 * Drain one of the Kubernetes nodes with one of the Kafka or ZooKeeper pods
     ```
     kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s --force
     ```
 * Watch how it works:
-    * The `kubetl drain` command will wait for the Kafka / ZooKeeper to be drained
-    * The Drain Cleaner log should show how it gets the eviction events
-    * Strimzi Cluster Operator log should show how it rolls the pods which are being evicted
+  * The `kubetl drain` command will cordon the worker node and trigger the eviction of the Kafka / ZooKeeper pods running on it.
+    It will evict the Pods that can be evicted and eventually fail because Drain Cleaner denied the eviction of the Kafka and ZooKeeper pods
+    ```
+    kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
+    <worker-node> cordoned
+    evicting pod myproject/my-cluster-kafka-1
+    evicting pod myproject/my-cluster-entity-operator-8499d956cb-r8b5t
+    ...
+    pod/my-cluster-entity-operator-8499d956cb-r8b5t evicted
+    ...
+    There are pending pods in node "<worker-node>" when an error occurred: error when evicting pods/"my-cluster-kafka-1" -n "myproject": admission webhook "strimzi-drain-cleaner.strimzi.io" denied the request: The pod will be rolled by the Strimzi Cluster Operator
+    pod/my-cluster-controllers-1
+    error: unable to drain node "<worker-node>" due to error:error when evicting pods/"my-cluster-kafka-1" -n "myproject": admission webhook "strimzi-drain-cleaner.strimzi.io" denied the request: The pod will be rolled by the Strimzi Cluster Operator, continuing command...
+    There are pending nodes to be drained:
+    <worker-node>
+    error when evicting pods/"my-cluster-kafka-1" -n "myproject": admission webhook "strimzi-drain-cleaner.strimzi.io" denied the request: The pod will be rolled by the Strimzi Cluster Operator
+    ```
+  * The Drain Cleaner log should show how it gets the eviction events
+  * Strimzi Cluster Operator log should show how it rolls the pods which are being evicted
+  * Once the Pods are restarted, you can retry the `kubectl drain` command and it should succeed
+    ```
+    kubectl <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
+    <worker-node> already cordoned
+    Warning: ignoring DaemonSet-managed Pods: ...
+    <worker-node> drained
+    ```
 
 ## Getting help
 

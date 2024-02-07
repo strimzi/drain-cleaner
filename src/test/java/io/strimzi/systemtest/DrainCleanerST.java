@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.api.model.apps.StatefulSet;
 import io.fabric8.kubernetes.api.model.apps.StatefulSetBuilder;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudget;
 import io.fabric8.kubernetes.api.model.policy.v1.PodDisruptionBudgetBuilder;
+import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.strimzi.utils.Constants;
 import io.strimzi.utils.SecretUtils;
 import io.strimzi.utils.StUtils;
@@ -16,9 +17,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import java.util.Map;
+
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 public class DrainCleanerST extends AbstractST {
 
@@ -40,7 +46,10 @@ public class DrainCleanerST extends AbstractST {
 
         LOGGER.info("Creating eviction request to the pod");
         String podName = kubeClient().listPodsByPrefixInName(Constants.NAMESPACE, stsName).get(0).getMetadata().getName();
-        kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict();
+
+        KubernetesClientException ex = assertThrows(KubernetesClientException.class, () -> kubeClient().getClient().pods().inNamespace(Constants.NAMESPACE).withName(podName).evict());
+        assertThat(ex.getCode(), is(500));
+        assertThat(ex.getMessage(), containsString("The pod will be rolled by the Strimzi Cluster Operator."));
 
         LOGGER.info("Checking that pod annotations will contain \"{}: true\"", MANUAL_RU_ANNO);
 

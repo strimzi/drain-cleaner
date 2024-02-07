@@ -53,7 +53,7 @@ public class ValidatingWebhookTest {
     }
 
     @Test
-    public void testEviction() {
+    public void testEvictionAllowed() {
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
                 "strimzi.io/name", "my-cluster-kafka"
@@ -62,11 +62,33 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, false);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
         assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testEvictionDenied() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
@@ -97,11 +119,13 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(admissionReview);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
@@ -120,11 +144,13 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().size(), is(1));
@@ -144,11 +170,13 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().size(), is(3));
@@ -165,7 +193,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -180,7 +208,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, null));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -200,7 +228,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -220,11 +248,13 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
@@ -241,11 +271,13 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
@@ -262,7 +294,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, false, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, false, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -281,7 +313,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, false);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, false, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -296,7 +328,7 @@ public class ValidatingWebhookTest {
                 "strimzi.io/kind", "Kafka",
                 "strimzi.io/name", "my-cluster-zookeeper"
         );
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(true, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -307,7 +339,7 @@ public class ValidatingWebhookTest {
 
     @Test
     public void testKafkaAndZooKeeperFilters() {
-        ValidatingWebhook webhook = new ValidatingWebhook(client, false, false);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, false, false, true);
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
                 "strimzi.io/name", "my-cluster-zookeeper"
@@ -338,7 +370,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -354,7 +386,7 @@ public class ValidatingWebhookTest {
                 "strimzi.io/kind", "Kafka",
                 "strimzi.io/name", "my-cluster-zookeeper"
         );
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -373,11 +405,13 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, never()).patch((Pod) any());
     }
@@ -407,11 +441,13 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(request);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
@@ -441,7 +477,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
         AdmissionReview reviewResponse = webhook.webhook(request);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));

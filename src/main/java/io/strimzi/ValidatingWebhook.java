@@ -6,6 +6,7 @@ package io.strimzi;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReviewBuilder;
@@ -39,6 +40,9 @@ public class ValidatingWebhook {
     @ConfigProperty(name = "strimzi.drain.zookeeper")
     boolean drainZooKeeper;
 
+    @ConfigProperty(name = "strimzi.deny.eviction")
+    boolean denyEviction;
+
     @Inject
     KubernetesClient client;
 
@@ -48,10 +52,11 @@ public class ValidatingWebhook {
     }
 
     // Parametrized constructor => used in tests
-    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper) {
+    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction) {
         this.client = client;
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
+        this.denyEviction = denyEviction;
     }
 
     private ObjectMeta extractEvictionMetadata(AdmissionRequest request)    {
@@ -84,23 +89,37 @@ public class ValidatingWebhook {
 
         AdmissionRequest request = review.getRequest();
         ObjectMeta evictionMetadata = extractEvictionMetadata(request);
+
         if (evictionMetadata != null) {
             String name = evictionMetadata.getName();
             String namespace = evictionMetadata.getNamespace();
+
             if (namespace == null) {
                 // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
                 // request without the namespace. In such case, we use the namespace form the AdmissionRequest.
                 LOG.warn("There is no namespace in the Eviction request - trying to use namespace of the Admission request");
                 namespace = request.getNamespace();
             }
+
             if (name == null || namespace == null) {
                 LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
             } else {
                 Pod pod = client.pods().inNamespace(namespace).withName(name).get();
+
                 if (pod != null) {
                     if (matchingLabel(pod.getMetadata().getLabels())) {
                         LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
                         annotatePodForRestart(pod, request.getDryRun());
+
+                        // The Pod should be rolled by the Strimzi Cluster Operator
+                        //     => depending on the configuration, we deny or allow the eviction
+                        if (denyEviction)   {
+                            LOG.info("Denying request for eviction of Pod {} in namespace {}", name, namespace);
+                            return denyRequest(request);
+                        } else {
+                            LOG.info("Allowing request for eviction of Pod {} in namespace {}", name, namespace);
+                            return allowRequest(request);
+                        }
                     } else {
                         LOG.info("Received eviction event which does not match any relevant pods.");
                     }
@@ -111,10 +130,26 @@ public class ValidatingWebhook {
         } else {
             LOG.warn("Weird, this does not seem to be an Eviction webhook");
         }
+
+        // Does not seem like a request for us, but we will allow it if some other tool makes some sense of it
+        return allowRequest(request);
+    }
+
+    private AdmissionReview allowRequest(AdmissionRequest request) {
         return new AdmissionReviewBuilder()
                 .withNewResponse()
                     .withUid(request.getUid())
                     .withAllowed(true)
+                .endResponse()
+                .build();
+    }
+
+    private AdmissionReview denyRequest(AdmissionRequest request) {
+        return new AdmissionReviewBuilder()
+                .withNewResponse()
+                    .withUid(request.getUid())
+                    .withAllowed(false)
+                    .withStatus(new StatusBuilder().withCode(500).withMessage("The pod will be rolled by the Strimzi Cluster Operator").build())
                 .endResponse()
                 .build();
     }
