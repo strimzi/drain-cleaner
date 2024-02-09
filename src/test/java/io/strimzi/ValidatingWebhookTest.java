@@ -4,12 +4,15 @@
  */
 package io.strimzi;
 
+import io.fabric8.kubernetes.api.model.DeleteOptionsBuilder;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.PodBuilder;
 import io.fabric8.kubernetes.api.model.PodList;
+import io.fabric8.kubernetes.api.model.PreconditionsBuilder;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReview;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionReviewBuilder;
+import io.fabric8.kubernetes.api.model.policy.v1.Eviction;
 import io.fabric8.kubernetes.api.model.policy.v1.EvictionBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
@@ -33,6 +36,7 @@ import static org.mockito.Mockito.verify;
 
 import static org.mockito.Mockito.when;
 
+@SuppressWarnings({"checkstyle:ClassDataAbstractionCoupling"})
 public class ValidatingWebhookTest {
     KubernetesClient client;
     MixedOperation<Pod, PodList, PodResource> pods;
@@ -92,6 +96,52 @@ public class ValidatingWebhookTest {
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testEvictionCorrectUid() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels, "POD-UID"));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testEvictionWrongUid() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        Pod pod = new PodBuilder(mockedPod(false, labels))
+                .editMetadata()
+                    .withUid("ANOTHER-POD-UUID")
+                .endMetadata()
+                .build();
+        when(podResource.get()).thenReturn(pod);
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels, "WRONG-UID"));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        verify(podResource, times(1)).get();
+        verify(podResource, never()).patch((Pod) any());
     }
 
     @Test
@@ -494,6 +544,7 @@ public class ValidatingWebhookTest {
                     .withLabels(labels)
                     .withNamespace("my-namespace")
                     .withAnnotations(Collections.emptyMap())
+                    .withUid("POD-UID")
                 .endMetadata()
                 .withNewSpec()
                 .endSpec()
@@ -506,21 +557,30 @@ public class ValidatingWebhookTest {
         return pod;
     }
 
-    private AdmissionReview reviewRequest(boolean dryRun, Map<String, String> labels)   {
-        String podName = "my-cluster-kafka-1";
-        AdmissionRequest admissionRequest = new AdmissionRequest();
-        admissionRequest.setObject(new EvictionBuilder()
+    private AdmissionReview reviewRequest(boolean dryRun, Map<String, String> labels, String preconditionsUid)   {
+        Eviction eviction = new EvictionBuilder()
                 .withNewMetadata()
-                    .withName(podName)
+                    .withName("my-cluster-kafka-1")
                     .withNamespace("my-namespace")
                     .withLabels(labels)
                 .endMetadata()
-                .build());
+                .build();
+
+        if (preconditionsUid != null)   {
+            eviction.setDeleteOptions(new DeleteOptionsBuilder().withPreconditions(new PreconditionsBuilder().withUid(preconditionsUid).build()).build());
+        }
+
+        AdmissionRequest admissionRequest = new AdmissionRequest();
+        admissionRequest.setObject(eviction);
         admissionRequest.setDryRun(dryRun);
         admissionRequest.setUid("SOME-UUID");
 
         return new AdmissionReviewBuilder()
                 .withRequest(admissionRequest)
                 .build();
+    }
+
+    private AdmissionReview reviewRequest(boolean dryRun, Map<String, String> labels)   {
+        return reviewRequest(dryRun, labels, null);
     }
 }

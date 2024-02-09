@@ -4,7 +4,6 @@
  */
 package io.strimzi;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.StatusBuilder;
 import io.fabric8.kubernetes.api.model.admission.v1.AdmissionRequest;
@@ -59,13 +58,21 @@ public class ValidatingWebhook {
         this.denyEviction = denyEviction;
     }
 
-    private ObjectMeta extractEvictionMetadata(AdmissionRequest request)    {
+    private EvictionRequest extractEviction(AdmissionRequest request)    {
         if (request.getObject() instanceof Eviction eviction) {
             LOG.debug("Received Eviction request of version v1");
-            return eviction.getMetadata();
+
+            // Extract the UID from preconditions if set
+            String uid = eviction.getDeleteOptions() != null && eviction.getDeleteOptions().getPreconditions() != null ? eviction.getDeleteOptions().getPreconditions().getUid() : null;
+
+            return new EvictionRequest(eviction.getMetadata().getName(), eviction.getMetadata().getNamespace(), uid);
         } else if (request.getObject() instanceof io.fabric8.kubernetes.api.model.policy.v1beta1.Eviction eviction) {
             LOG.debug("Received Eviction request of version v1beta1");
-            return eviction.getMetadata();
+
+            // Extract the UID from preconditions if set
+            String uid = eviction.getDeleteOptions() != null && eviction.getDeleteOptions().getPreconditions() != null ? eviction.getDeleteOptions().getPreconditions().getUid() : null;
+
+            return new EvictionRequest(eviction.getMetadata().getName(), eviction.getMetadata().getNamespace(), uid);
         } else {
             return null;
         }
@@ -81,6 +88,15 @@ public class ValidatingWebhook {
         }
     }
 
+    private boolean matchingUuid(String evictionUuid, String podUuid) {
+        if (evictionUuid == null || evictionUuid.equals(podUuid))   {
+            return true;
+        } else {
+            LOG.warn("The UUID {} from the eviction request does not match the UUID of the current pod {}. The request might be old and should be ignored.", evictionUuid, podUuid);
+            return false;
+        }
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -88,11 +104,11 @@ public class ValidatingWebhook {
         LOG.debug("Received AdmissionReview request: {}", review);
 
         AdmissionRequest request = review.getRequest();
-        ObjectMeta evictionMetadata = extractEvictionMetadata(request);
+        EvictionRequest eviction = extractEviction(request);
 
-        if (evictionMetadata != null) {
-            String name = evictionMetadata.getName();
-            String namespace = evictionMetadata.getNamespace();
+        if (eviction != null) {
+            String name = eviction.name();
+            String namespace = eviction.namespace();
 
             if (namespace == null) {
                 // Some applications (see https://github.com/strimzi/drain-cleaner/issues/34) might send the eviction
@@ -109,16 +125,19 @@ public class ValidatingWebhook {
                 if (pod != null) {
                     if (matchingLabel(pod.getMetadata().getLabels())) {
                         LOG.info("Received eviction webhook for Pod {} in namespace {}", name, namespace);
-                        annotatePodForRestart(pod, request.getDryRun());
 
-                        // The Pod should be rolled by the Strimzi Cluster Operator
-                        //     => depending on the configuration, we deny or allow the eviction
-                        if (denyEviction)   {
-                            LOG.info("Denying request for eviction of Pod {} in namespace {}", name, namespace);
-                            return denyRequest(request);
-                        } else {
-                            LOG.info("Allowing request for eviction of Pod {} in namespace {}", name, namespace);
-                            return allowRequest(request);
+                        if (matchingUuid(eviction.uid(), pod.getMetadata().getUid())) {
+                            annotatePodForRestart(pod, request.getDryRun());
+
+                            // The Pod should be rolled by the Strimzi Cluster Operator
+                            //     => depending on the configuration, we deny or allow the eviction
+                            if (denyEviction) {
+                                LOG.info("Denying request for eviction of Pod {} in namespace {}", name, namespace);
+                                return denyRequest(request);
+                            } else {
+                                LOG.info("Allowing request for eviction of Pod {} in namespace {}", name, namespace);
+                                return allowRequest(request);
+                            }
                         }
                     } else {
                         LOG.info("Received eviction event which does not match any relevant pods.");
@@ -185,5 +204,8 @@ public class ValidatingWebhook {
         } else {
             LOG.info("Pod {} in namespace {} was not patched because webhook is in dry-run mode", name, namespace);
         }
+    }
+
+    record EvictionRequest(String name, String namespace, String uid) {
     }
 }
