@@ -9,7 +9,7 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 1.0.1
+  tag: 1.1.0
   pullPolicy: ""
   imagePullSecrets: []
 
@@ -82,6 +82,8 @@ env:
   - name: STRIMZI_DRAIN_KAFKA
     value: "true"
   - name: STRIMZI_DRAIN_ZOOKEEPER
+    value: "true"
+  - name: STRIMZI_DENY_EVICTION
     value: "true"
   - name: STRIMZI_CERTIFICATE_WATCH_ENABLED
     value: "true"
