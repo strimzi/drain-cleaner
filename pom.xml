@@ -2,9 +2,79 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>io.strimzi</groupId>
   <artifactId>strimzi-drain-cleaner</artifactId>
   <version>1.2.0-SNAPSHOT</version>
+
+  <licenses>
+    <license>
+      <name>The Apache License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <name>Strimzi Drain-Cleaner</name>
+  <description>Dran-Cleaner helps with moving the Apache Kafka pods deployed by Strimzi from Kubernetes
+    nodes which are being drained </description>
+  <url>https://strimzi.io/</url>
+
+  <scm>
+    <connection>scm:git:git://github.com/strimzi/drain-cleaner.git</connection>
+    <developerConnection>scm:git:ssh://github.com:strimzi/drain-cleaner.git</developerConnection>
+    <url>https://github.com/strimzi/drain-cleaner</url>
+  </scm>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/strimzi/drain-cleaner/issues</url>
+  </issueManagement>
+
+  <developers>
+    <developer>
+      <name>Tom Bentley</name>
+      <email>tbentley@redhat.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Paolo Patierno</name>
+      <email>ppatierno@live.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Jakub Scholz</name>
+      <email>github@scholzj.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Shubham Rawat</name>
+      <email>srawat@redhat.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Paul Mellor</name>
+      <email>pmellor@redhat.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Lukáš Král</name>
+      <email>l.kral@outlook.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Maroš Orsák</name>
+      <email>maros.orsak159@gmail.com</email>
+      <organization>Red Hat</organization>
+      <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+  </developers>
+
   <properties>
     <!-- Maven plugins -->
     <compiler-plugin.version>3.10.1</compiler-plugin.version>
