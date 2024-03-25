@@ -14,9 +14,9 @@
     </license>
   </licenses>
 
-  <name>Strimzi Drain-Cleaner</name>
-  <description>Dran-Cleaner helps with moving the Apache Kafka pods deployed by Strimzi from Kubernetes
-    nodes which are being drained </description>
+  <name>Strimzi Drain Cleaner</name>
+  <description>Utility to help with draining nodes running Strimzi-managed Apache Kafka
+    or Apache ZooKeeper pods. </description>
   <url>https://strimzi.io/</url>
 
   <scm>
@@ -50,10 +50,16 @@
       <organizationUrl>https://www.redhat.com</organizationUrl>
     </developer>
     <developer>
-      <name>Shubham Rawat</name>
-      <email>srawat@redhat.com</email>
+      <name>Jakub Stejskal</name>
+      <email>xstejs24@gmail.com</email>
       <organization>Red Hat</organization>
       <organizationUrl>https://www.redhat.com</organizationUrl>
+    </developer>
+    <developer>
+      <name>Stanislav Knot</name>
+      <email>knot@cngroup.dk</email>
+      <organization>CN Group</organization>
+      <organizationUrl>https://www.cngroup.dk/</organizationUrl>
     </developer>
     <developer>
       <name>Paul Mellor</name>
