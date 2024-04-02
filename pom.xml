@@ -101,10 +101,10 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     
     <!-- Quarkus -->
-    <quarkus-plugin.version>3.2.10.Final</quarkus-plugin.version>
+    <quarkus-plugin.version>3.8.3</quarkus-plugin.version>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.version>3.2.10.Final</quarkus.platform.version>
+    <quarkus.platform.version>3.8.3</quarkus.platform.version>
 
     <!-- Other versions - used in Test -->
     <log4j.version>2.17.2</log4j.version>
