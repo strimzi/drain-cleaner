@@ -108,7 +108,7 @@
 
     <!-- Other versions - used in Test -->
     <log4j.version>2.17.2</log4j.version>
-    <bouncycastle.version>1.77</bouncycastle.version>
+    <bouncycastle.version>1.78</bouncycastle.version>
 
     <!-- Used to override Quarkus Kubernetes Client dependency due to CVE-2024-26308 -->
     <commons-compress.version>1.26.0</commons-compress.version>
