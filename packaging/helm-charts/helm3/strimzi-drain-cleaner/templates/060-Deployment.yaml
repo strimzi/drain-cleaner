@@ -20,6 +20,11 @@ spec:
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+      annotations:
+        {{- include "strimzi-drain-cleaner.annotations" . | nindent 8 }}
+        {{- with .Values.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
     spec:
       serviceAccountName: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
       {{- if .Values.image.imagePullSecrets }}

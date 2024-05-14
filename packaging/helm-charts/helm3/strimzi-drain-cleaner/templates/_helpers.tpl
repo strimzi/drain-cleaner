@@ -52,6 +52,13 @@ app: {{ include "strimzi-drain-cleaner.name" . }}
 {{- end }}
 
 {{/*
+Annotations
+*/}}
+{{- define "strimzi-drain-cleaner.annotations" -}}
+app: {{ include "strimzi-drain-cleaner.name" . }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "strimzi-drain-cleaner.serviceAccountName" -}}
