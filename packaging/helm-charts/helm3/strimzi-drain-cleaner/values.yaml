@@ -70,6 +70,8 @@ podLabels: {}
   # Specifies optional custom labels for Pod.
   # If you want to add custom labels, add them below and remove curly braces above.
 
+podAnnotations: {}
+
 nodeSelector: {}
 
 tolerations: []
