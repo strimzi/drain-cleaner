@@ -9,7 +9,7 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 1.1.0
+  tag: 1.2.0
   pullPolicy: ""
   imagePullSecrets: []
 
@@ -69,6 +69,8 @@ deploymentLabels: {}
 podLabels: {}
   # Specifies optional custom labels for Pod.
   # If you want to add custom labels, add them below and remove curly braces above.
+
+podAnnotations: {}
 
 nodeSelector: {}
 
