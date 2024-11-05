@@ -52,7 +52,7 @@ helm_pkg:
 	rm strimzi-drain-cleaner-$(RELEASE_VERSION).tgz
 
 helm_install: packaging/helm-charts/helm3
-	$(MAKE) -C packaging/helm-charts/helm3 $(MAKECMDGOALS)
+	$(MAKE) -C packaging/helm-charts/helm3 helm_install
 
 .PHONY: all
 all: java_package helm_install docker_build docker_push
