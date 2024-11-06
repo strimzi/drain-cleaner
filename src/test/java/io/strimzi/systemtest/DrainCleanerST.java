@@ -39,7 +39,6 @@ public class DrainCleanerST extends AbstractST {
 
     @Test
     void testEvictionRequestOnKafkaPod() {
-        assertThat(true, is(false));
         final String stsName = "my-cluster-kafka";
         final Map<String, String> labels = Map.of(
                 "app", stsName,
