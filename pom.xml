@@ -197,6 +197,12 @@
       <version>${bouncycastle.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.skodjob</groupId>
+      <artifactId>test-frame-log-collector</artifactId>
+      <version>0.8.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>
