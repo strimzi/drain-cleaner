@@ -68,7 +68,7 @@ if [ "$TEST_CLUSTER" = "minikube" ]; then
     # We have to allow trafic for ITS when NPs are turned on
     # We can allow NP after Strimzi#4092 which should fix some issues on STs side
     minikube start --vm-driver=docker --kubernetes-version=${KUBE_VERSION} \
-      --insecure-registry=localhost:5000 --extra-config=apiserver.authorization-mode=Node,RBAC \
+      --insecure-registry=$(hostname -i | awk '{print $3}'):5000 --extra-config=apiserver.authorization-mode=Node,RBAC \
       --cpus=${MINIKUBE_CPU} --memory=${MINIKUBE_MEMORY} --force
 
     if [ $? -ne 0 ]
