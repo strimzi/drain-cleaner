@@ -61,7 +61,8 @@ if [ "$TEST_CLUSTER" = "minikube" ]; then
     mkdir $HOME/.kube || true
     touch $HOME/.kube/config
 
-    docker run -d -p 5000:5000 ${MINIKUBE_REGISTRY_IMAGE}
+    docker run -d -p 5000:5000 --restart=always ${MINIKUBE_REGISTRY_IMAGE}
+    docker ps | grep registry
 
     export KUBECONFIG=$HOME/.kube/config
     # We can turn on network polices support by adding the following options --network-plugin=cni --cni=calico
