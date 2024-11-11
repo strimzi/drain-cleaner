@@ -9,17 +9,20 @@ import io.strimzi.utils.StUtils;
 import io.strimzi.utils.deployment.SetupDrainCleaner;
 import io.strimzi.utils.k8s.KubeClusterResource;
 
+import io.strimzi.utils.watcher.TestExecutionWatcher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.Collections;
 
 import static io.strimzi.utils.k8s.KubeClusterResource.kubeClient;
 
+@ExtendWith({TestExecutionWatcher.class})
 public class AbstractST {
 
     private static final Logger LOGGER = LogManager.getLogger(AbstractST.class);

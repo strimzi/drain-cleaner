@@ -24,10 +24,14 @@ public class Environment {
 
     private static final String INSTALL_TYPE_ENV = "DC_INSTALL_TYPE";
 
+    private static final String TEST_LOG_DIR_ENV = "TEST_LOG_DIR";
+    private static final String TEST_LOG_DIR_DEFAULT = Constants.USER_PATH + "/target/logs/";
+
     public static final String CLEANER_REGISTRY = getOrDefault(CLEANER_REGISTRY_ENV, null);
     public static final String CLEANER_ORG = getOrDefault(CLEANER_ORG_ENV, null);
     public static final String CLEANER_TAG = getOrDefault(CLEANER_TAG_ENV, null);
     public static final InstallType INSTALL_TYPE = getInstallTypeOrDefault(INSTALL_TYPE_ENV, InstallType.Bundle);
+    public static final String TEST_LOG_DIR = getOrDefault(TEST_LOG_DIR_ENV, TEST_LOG_DIR_DEFAULT);
 
     static {
         String debugFormat = "{}: {}";

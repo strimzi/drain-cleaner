@@ -3,7 +3,7 @@ set -xe
 
 rm -rf ~/.kube
 
-KUBE_VERSION=${KUBE_VERSION:-1.23.0}
+KUBE_VERSION=${KUBE_VERSION:-1.25.0}
 MINIKUBE_REGISTRY_IMAGE=${REGISTRY_IMAGE:-"registry"}
 COPY_DOCKER_LOGIN=${COPY_DOCKER_LOGIN:-"false"}
 
@@ -61,7 +61,7 @@ if [ "$TEST_CLUSTER" = "minikube" ]; then
     mkdir $HOME/.kube || true
     touch $HOME/.kube/config
 
-    docker run -d -p 5000:5000 ${MINIKUBE_REGISTRY_IMAGE}
+    docker run -d -p 5000:5000 --restart=always ${MINIKUBE_REGISTRY_IMAGE}
 
     export KUBECONFIG=$HOME/.kube/config
     # We can turn on network polices support by adding the following options --network-plugin=cni --cni=calico
@@ -89,7 +89,7 @@ if [ "$TEST_CLUSTER" = "minikube" ]; then
       set -ex
     fi
 
-    minikube addons enable registry
+    minikube addons enable registry --images="KubeRegistryProxy=gcr.io/google_containers/kube-registry-proxy:0.4"
     minikube addons enable registry-aliases
 
     kubectl create clusterrolebinding add-on-cluster-admin --clusterrole=cluster-admin --serviceaccount=kube-system:default
