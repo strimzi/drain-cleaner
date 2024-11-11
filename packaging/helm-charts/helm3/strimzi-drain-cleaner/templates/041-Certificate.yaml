@@ -14,5 +14,7 @@ spec:
   - {{ include "strimzi-drain-cleaner.name" . }}.{{ .Values.namespace.name }}
   - strimzi-drain-cleaner
   issuerRef:
+    group: cert-manager.io
+    kind: Issuer
     name: strimzi-drain-cleaner
 {{- end }}
