@@ -101,13 +101,7 @@ helm_pkg: helm_clean helm_lint helm_install
 	$(HELM_CLI) package --version $(RELEASE_VERSION) --app-version $(RELEASE_VERSION) --destination ./ $(CHART_PATH)
 	rm -rf strimzi-$(RELEASE_VERSION)
 
-java_build: helm_install
-java_install: java_build
-docker_build: helm_install
-docker_tag:
-docker_push:
-
-all: docker_build
+all: helm_install
 clean: helm_clean
 
-.PHONY: build clean release spotbugs
+.PHONY: all clean
