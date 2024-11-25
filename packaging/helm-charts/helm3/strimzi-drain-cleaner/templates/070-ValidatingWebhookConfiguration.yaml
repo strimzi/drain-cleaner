@@ -22,8 +22,10 @@ webhooks:
         name: "strimzi-drain-cleaner"
         path: /drainer
         port: 443
+      {{- if not .Values.certManager.create }}
       {{- if .Values.secret.ca_bundle }}
       caBundle: {{ .Values.secret.ca_bundle }}
+      {{- end }}
       {{- end }}
     admissionReviewVersions: ["v1"]
     {{- with (.Values.webhook).namespaceSelector }}
