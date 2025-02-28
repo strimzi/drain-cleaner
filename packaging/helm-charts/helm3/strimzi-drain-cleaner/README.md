@@ -171,7 +171,7 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `image.registry`         | Override default Drain Cleaner image registry            | `quay.io`       |
 | `image.repository`       | Override default Drain Cleaner image repository          | `strimzi`       |
 | `image.name`             | Drain Cleaner image name                                 | `drain-cleaner` |
-| `image.tag`              | Override default Drain Cleaner image tag                 | `latest`        |
+| `image.tag`              | Override default Drain Cleaner image tag                 | `1.3.0`        |
 | `image.imagePullPolicy`  | Image pull policy for all pods deployed by Drain Cleaner | `nil`           |
 | `image.imagePullSecrets` | List of Docker registry pull secrets                     | `[]`            |
 | `resources`              | Configures resources for the Drain Cleaner Pod           | `[]`            |
