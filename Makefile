@@ -26,6 +26,8 @@ release_version:
 	echo "Changing Docker image tags in Helm Chart to :$(RELEASE_VERSION)"
 	CHART_PATH=./packaging/helm-charts/helm3/strimzi-drain-cleaner; \
 	$(SED) -i 's/\(tag: \).*/\1$(RELEASE_VERSION)/g' $$CHART_PATH/values.yaml; \
+	$(SED) -i 's/\(appVersion: \).*/\1$(RELEASE_VERSION)/g' $$CHART_PATH/Chart.yaml; \
+	$(SED) -i 's/\(version: \).*/\1$(RELEASE_VERSION)/g' $$CHART_PATH/Chart.yaml; \
 	$(SED) -i 's/\(image.tag[^\n]*| \)`.*`/\1`$(RELEASE_VERSION)`/g' $$CHART_PATH/README.md
 
 release_maven:
