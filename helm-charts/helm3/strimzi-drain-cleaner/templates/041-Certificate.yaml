@@ -10,9 +10,11 @@ spec:
   secretName: strimzi-drain-cleaner
   commonName: strimzi-drain-cleaner
   dnsNames:
-  - {{ include "strimzi-drain-cleaner.name" . }}.{{ .Values.namespace.name }}.svc
-  - {{ include "strimzi-drain-cleaner.name" . }}.{{ .Values.namespace.name }}
+  - {{ include "strimzi-drain-cleaner.name" . }}.{{default .Release.Namespace .Values.namespace.name }}.svc
+  - {{ include "strimzi-drain-cleaner.name" . }}.{{default .Release.Namespace .Values.namespace.name }}
   - strimzi-drain-cleaner
   issuerRef:
+    group: cert-manager.io
+    kind: Issuer
     name: strimzi-drain-cleaner
 {{- end }}
