@@ -97,7 +97,7 @@
     <!-- Maven plugins -->
     <compiler-plugin.version>3.10.1</compiler-plugin.version>
     <maven.checkstyle.version>3.2.0</maven.checkstyle.version>
-    <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
+    <surefire-plugin.version>3.5.2</surefire-plugin.version>
 
     <!-- Project options -->
     <maven.compiler.parameters>true</maven.compiler.parameters>
@@ -105,20 +105,16 @@
     <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    
+
     <!-- Quarkus -->
-    <quarkus-plugin.version>3.15.3</quarkus-plugin.version>
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.version>3.15.3.1</quarkus.platform.version>
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.version>3.20.0</quarkus.platform.version>
 
     <!-- Other versions - used in Test -->
-    <log4j.version>2.17.2</log4j.version>
-    <bouncycastle.version>1.78.1</bouncycastle.version>
+    <log4j.version>2.24.3</log4j.version>
+    <bouncycastle.version>1.80</bouncycastle.version>
     <skodjob.test-frame.version>0.8.0</skodjob.test-frame.version>
-
-    <!-- Used to override Quarkus Kubernetes Client dependency due to CVE-2024-26308 -->
-    <commons-compress.version>1.26.0</commons-compress.version>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -163,12 +159,6 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-resteasy-jackson</artifactId>
     </dependency>
-    <!-- Used to override Quarkus Kubernetes Client dependency due to CVE-2024-26308 -->
-    <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-compress</artifactId>
-      <version>${commons-compress.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.jboss.logmanager</groupId>
       <artifactId>log4j2-jboss-logmanager</artifactId>
@@ -177,7 +167,6 @@
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-api</artifactId>
-      <version>${log4j.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -233,7 +222,7 @@
                     <headerLocation>.checkstyle/java.header</headerLocation>
                     <suppressionsLocation>.checkstyle/suppressions.xml</suppressionsLocation>
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                    <encoding>UTF-8</encoding>
+                    <inputEncoding>UTF-8</inputEncoding>
                     <consoleOutput>true</consoleOutput>
                     <failsOnError>true</failsOnError>
                 </configuration>
@@ -244,9 +233,9 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>io.quarkus</groupId>
+        <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus-plugin.version}</version>
+        <version>${quarkus.platform.version}</version>
         <extensions>true</extensions>
         <executions>
           <execution>
@@ -326,9 +315,9 @@
       <build>
         <plugins>
           <plugin>
-            <groupId>io.quarkus</groupId>
+            <groupId>${quarkus.platform.group-id}</groupId>
             <artifactId>quarkus-maven-plugin</artifactId>
-            <version>${quarkus-plugin.version}</version>
+            <version>${quarkus.platform.version}</version>
             <extensions>true</extensions>
             <executions>
               <execution>
