@@ -67,5 +67,3 @@ spec:
             secretName: strimzi-drain-cleaner
         - name: tmp-dir
           emptyDir: {}
-  strategy:
-    type: RollingUpdate
