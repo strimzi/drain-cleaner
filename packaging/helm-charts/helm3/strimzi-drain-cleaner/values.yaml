@@ -80,6 +80,8 @@ topologySpreadConstraints: []
 
 affinity: {}
 
+deploymentStrategy: {}
+
 env:
   - name: STRIMZI_DRAIN_KAFKA
     value: "true"
