@@ -99,3 +99,6 @@ env:
     valueFrom:
       fieldRef:
         fieldPath: metadata.name
+
+webhook:
+  failurePolicy: Ignore

@@ -37,7 +37,7 @@ spec:
         type: persistent-claim
         size: 100Gi
         deleteClaim: false
-    # Uncomment when using the legacy mode 
+    # Uncomment when using the legacy mode
     # template:
     #   podDisruptionBudget:
     #     maxUnavailable: 0
@@ -47,7 +47,7 @@ spec:
       type: persistent-claim
       size: 100Gi
       deleteClaim: false
-    # Uncomment when using the legacy mode 
+    # Uncomment when using the legacy mode
     # template:
     #   podDisruptionBudget:
     #     maxUnavailable: 0
@@ -179,6 +179,7 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `affinity`               | Add affinities to Drain Cleaner Pod                                    | `{}`            |
 | `nodeSelector`           | Add a node selector to Drain Cleaner Pod                               | `{}`            |
 | `deploymentStrategy`     | Adjust the Kubernetes rollout strategy of the Drain Cleaner Deployment | `{}`            |
+| `webhook.faillurePolicy` | Override default validating webhook failurePolicy                      | `Ignore`        |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
