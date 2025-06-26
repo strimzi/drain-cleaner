@@ -8,3 +8,7 @@ version: 1.1.0
 home: https://strimzi.io/
 sources:
 - https://github.com/strimzi/drain-cleaner
+maintainers:
+  - name: Strimzi Project Maintainers
+    email: cncf-strimzi-maintainers@lists.cncf.io
+    url: https://github.com/strimzi/governance
