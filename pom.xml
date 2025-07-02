@@ -55,12 +55,12 @@
     <!-- Quarkus -->
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>3.20.0</quarkus.platform.version>
+    <quarkus.platform.version>3.20.1</quarkus.platform.version>
 
     <!-- Other versions - used in Test -->
     <log4j.version>2.24.3</log4j.version>
     <bouncycastle.version>1.80</bouncycastle.version>
-    <skodjob.test-frame.version>0.8.0</skodjob.test-frame.version>
+    <skodjob.test-frame.version>1.0.0</skodjob.test-frame.version>
   </properties>
   <dependencyManagement>
     <dependencies>
