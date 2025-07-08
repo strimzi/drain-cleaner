@@ -9,7 +9,7 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 1.3.0
+  tag: 1.4.0
   pullPolicy: ""
   imagePullSecrets: []
 
@@ -80,6 +80,8 @@ topologySpreadConstraints: []
 
 affinity: {}
 
+deploymentStrategy: {}
+
 env:
   - name: STRIMZI_DRAIN_KAFKA
     value: "true"
@@ -97,3 +99,6 @@ env:
     valueFrom:
       fieldRef:
         fieldPath: metadata.name
+
+webhook:
+  failurePolicy: Ignore
