@@ -101,5 +101,7 @@ spec:
             secretName: strimzi-drain-cleaner
         - name: tmp-dir
           emptyDir: {}
+  {{- with .Values.deploymentStrategy }}
   strategy:
-    type: RollingUpdate
+    {{- toYaml . | trim | nindent 4 }}
+  {{- end }}

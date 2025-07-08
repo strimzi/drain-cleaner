@@ -27,9 +27,9 @@ webhooks:
       {{- end }}
     admissionReviewVersions: ["v1"]
     {{- with (.Values.webhook).namespaceSelector }}
-    namespaceSelector: 
+    namespaceSelector:
       {{- toYaml . | nindent 6 }}
     {{- end }}
     sideEffects: None
-    failurePolicy: Ignore
+    failurePolicy: {{ .Values.webhook.failurePolicy }}
     timeoutSeconds: 5
