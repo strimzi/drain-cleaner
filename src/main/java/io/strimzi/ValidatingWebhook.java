@@ -24,6 +24,8 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.List;
 
 @Path("/drainer")
 public class ValidatingWebhook {
@@ -42,6 +44,9 @@ public class ValidatingWebhook {
     @ConfigProperty(name = "strimzi.deny.eviction")
     boolean denyEviction;
 
+    @ConfigProperty(name = "strimzi.drain.watch.namespaces", defaultValue = "")
+    String watchNamespaces;
+
     @Inject
     KubernetesClient client;
 
@@ -56,6 +61,16 @@ public class ValidatingWebhook {
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
+        this.watchNamespaces = "";
+    }
+
+    // Parametrized constructor for tests with namespace filtering
+    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction, String watchNamespaces) {
+        this.client = client;
+        this.drainZooKeeper = drainZooKeeper;
+        this.drainKafka = drainKafka;
+        this.denyEviction = denyEviction;
+        this.watchNamespaces = watchNamespaces;
     }
 
     private EvictionRequest extractEviction(AdmissionRequest request)    {
@@ -97,6 +112,19 @@ public class ValidatingWebhook {
         }
     }
 
+    private boolean isNamespaceWatched(String namespace) {
+        if (watchNamespaces == null || watchNamespaces.trim().isEmpty()) {
+            // If no specific namespaces are configured, watch all namespaces
+            return true;
+        }
+
+        List<String> watchedNamespaceList = Arrays.asList(watchNamespaces.split(","));
+        return watchedNamespaceList.stream()
+                .map(String::trim)
+                .filter(ns -> !ns.isEmpty())
+                .anyMatch(watchedNs -> watchedNs.equals(namespace));
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -119,6 +147,8 @@ public class ValidatingWebhook {
 
             if (name == null || namespace == null) {
                 LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
+            } else if (!isNamespaceWatched(namespace)) {
+                LOG.debug("Ignoring eviction request for Pod {} in namespace {} - namespace not in watch list", name, namespace);
             } else {
                 Pod pod = client.pods().inNamespace(namespace).withName(name).get();
 
