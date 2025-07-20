@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Path("/drainer")
 public class ValidatingWebhook {
@@ -44,8 +45,8 @@ public class ValidatingWebhook {
     @ConfigProperty(name = "strimzi.deny.eviction")
     boolean denyEviction;
 
-    @ConfigProperty(name = "strimzi.drain.watch.namespaces", defaultValue = "")
-    String watchNamespaces;
+    @ConfigProperty(name = "strimzi.drain.watch.namespaces")
+    Optional<String> watchNamespaces;
 
     @Inject
     KubernetesClient client;
@@ -61,7 +62,7 @@ public class ValidatingWebhook {
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
-        this.watchNamespaces = "";
+        this.watchNamespaces = Optional.empty();
     }
 
     // Parametrized constructor for tests with namespace filtering
@@ -70,7 +71,7 @@ public class ValidatingWebhook {
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
-        this.watchNamespaces = watchNamespaces;
+        this.watchNamespaces = Optional.ofNullable(watchNamespaces);
     }
 
     private EvictionRequest extractEviction(AdmissionRequest request)    {
@@ -113,12 +114,12 @@ public class ValidatingWebhook {
     }
 
     private boolean isNamespaceWatched(String namespace) {
-        if (watchNamespaces == null || watchNamespaces.trim().isEmpty()) {
+        if (!watchNamespaces.isPresent() || watchNamespaces.get().trim().isEmpty()) {
             // If no specific namespaces are configured, watch all namespaces
             return true;
         }
 
-        List<String> watchedNamespaceList = Arrays.asList(watchNamespaces.split(","));
+        List<String> watchedNamespaceList = Arrays.asList(watchNamespaces.get().split(","));
         return watchedNamespaceList.stream()
                 .map(String::trim)
                 .filter(ns -> !ns.isEmpty())
