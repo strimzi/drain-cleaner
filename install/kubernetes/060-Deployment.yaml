@@ -31,8 +31,6 @@ spec:
               value: "true"
             - name: STRIMZI_DENY_EVICTION
               value: "true"
-            - name: STRIMZI_DRAIN_WATCH_NAMESPACES
-              value: ""
             - name: STRIMZI_CERTIFICATE_WATCH_ENABLED
               value: "true"
             - name: STRIMZI_CERTIFICATE_WATCH_NAMESPACE
