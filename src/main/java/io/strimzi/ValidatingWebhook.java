@@ -45,8 +45,8 @@ public class ValidatingWebhook {
     @ConfigProperty(name = "strimzi.deny.eviction")
     boolean denyEviction;
 
-    @ConfigProperty(name = "strimzi.drain.watch.namespaces")
-    Optional<String> watchNamespaces;
+    @ConfigProperty(name = "strimzi.drain.namespaces")
+    Optional<String> drainNamespaces;
 
     @Inject
     KubernetesClient client;
@@ -62,16 +62,16 @@ public class ValidatingWebhook {
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
-        this.watchNamespaces = Optional.empty();
+        this.drainNamespaces = Optional.empty();
     }
 
     // Parametrized constructor for tests with namespace filtering
-    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction, String watchNamespaces) {
+    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction, String drainNamespaces) {
         this.client = client;
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
-        this.watchNamespaces = Optional.ofNullable(watchNamespaces);
+        this.drainNamespaces = Optional.ofNullable(drainNamespaces);
     }
 
     private EvictionRequest extractEviction(AdmissionRequest request)    {
@@ -114,16 +114,15 @@ public class ValidatingWebhook {
     }
 
     private boolean isNamespaceWatched(String namespace) {
-        if (!watchNamespaces.isPresent() || watchNamespaces.get().trim().isEmpty()) {
-            // If no specific namespaces are configured, watch all namespaces
-            return true;
+        if (!drainNamespaces.isPresent() || drainNamespaces.get().trim().isEmpty() || drainNamespaces.get().trim().equals("*")) {
+            return true; // Process all namespaces (current behavior)
         }
-
-        List<String> watchedNamespaceList = Arrays.asList(watchNamespaces.get().split(","));
-        return watchedNamespaceList.stream()
+        
+        List<String> drainNamespaceList = Arrays.asList(drainNamespaces.get().split(","));
+        return drainNamespaceList.stream()
                 .map(String::trim)
                 .filter(ns -> !ns.isEmpty())
-                .anyMatch(watchedNs -> watchedNs.equals(namespace));
+                .anyMatch(drainNs -> drainNs.equals(namespace));
     }
 
     @POST

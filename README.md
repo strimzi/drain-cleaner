@@ -92,7 +92,7 @@ The eviction request will be ignored by Kubernetes because of the PodDisruptionB
 By default, the Drain Cleaner drains Kafka and ZooKeeper pods. 
 If you want to use the Drain Cleaner with only one of them, you can edit the `Deployment` by setting the `STRIMZI_DRAIN_KAFKA` or `STRIMZI_DRAIN_ZOOKEEPER` environment variables to `false`.
 
-You can also limit the namespaces that the Drain Cleaner watches by setting the `STRIMZI_DRAIN_WATCH_NAMESPACES` environment variable to a comma-separated list of namespace names.
+You can also limit the namespaces that the Drain Cleaner watches by setting the `STRIMZI_DRAIN_NAMESPACES` environment variable to a comma-separated list of namespace names.
 When this variable is set to a non-empty value, the Drain Cleaner will only process eviction requests for Strimzi pods in the specified namespaces.
 When empty (the default), the Drain Cleaner will watch all namespaces.
 
