@@ -15,6 +15,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -27,6 +28,8 @@ import java.util.regex.Pattern;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @Path("/drainer")
 public class ValidatingWebhook {
@@ -51,9 +54,13 @@ public class ValidatingWebhook {
     @Inject
     KubernetesClient client;
 
+    private List<String> parsedDrainNamespaces;
+    private boolean watchAllNamespaces;
+
     // Default constructor => used in production
     @SuppressWarnings("unused")
     public ValidatingWebhook() {
+        initializeNamespaces();
     }
 
     // Parametrized constructor => used in tests
@@ -63,6 +70,7 @@ public class ValidatingWebhook {
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
         this.drainNamespaces = Optional.empty();
+        initializeNamespaces();
     }
 
     // Parametrized constructor for tests with namespace filtering
@@ -72,6 +80,23 @@ public class ValidatingWebhook {
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
         this.drainNamespaces = Optional.ofNullable(drainNamespaces);
+        initializeNamespaces();
+    }
+
+    @PostConstruct
+    public void initializeNamespaces() {
+        if (!drainNamespaces.isPresent() || drainNamespaces.get().trim().isEmpty() || drainNamespaces.get().trim().equals("*")) {
+            watchAllNamespaces = true;
+            parsedDrainNamespaces = Collections.emptyList();
+            LOG.info("Drain Cleaner will watch all namespaces");
+        } else {
+            watchAllNamespaces = false;
+            parsedDrainNamespaces = Arrays.stream(drainNamespaces.get().split(","))
+                    .map(String::trim)
+                    .filter(ns -> !ns.isEmpty())
+                    .collect(Collectors.toList());
+            LOG.info("Drain Cleaner will watch namespaces: {}", parsedDrainNamespaces);
+        }
     }
 
     private EvictionRequest extractEviction(AdmissionRequest request)    {
@@ -114,15 +139,11 @@ public class ValidatingWebhook {
     }
 
     private boolean isNamespaceWatched(String namespace) {
-        if (!drainNamespaces.isPresent() || drainNamespaces.get().trim().isEmpty() || drainNamespaces.get().trim().equals("*")) {
-            return true; // Process all namespaces (current behavior)
+        if (watchAllNamespaces) {
+            return true; // Process all namespaces
         }
         
-        List<String> drainNamespaceList = Arrays.asList(drainNamespaces.get().split(","));
-        return drainNamespaceList.stream()
-                .map(String::trim)
-                .filter(ns -> !ns.isEmpty())
-                .anyMatch(drainNs -> drainNs.equals(namespace));
+        return parsedDrainNamespaces.contains(namespace);
     }
 
     @POST
