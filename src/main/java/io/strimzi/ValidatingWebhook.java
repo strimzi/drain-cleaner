@@ -60,7 +60,6 @@ public class ValidatingWebhook {
     // Default constructor => used in production
     @SuppressWarnings("unused")
     public ValidatingWebhook() {
-        initializeNamespaces();
     }
 
     // Parametrized constructor => used in tests
