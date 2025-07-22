@@ -139,11 +139,7 @@ public class ValidatingWebhook {
     }
 
     private boolean isNamespaceWatched(String namespace) {
-        if (watchAllNamespaces) {
-            return true; // Process all namespaces
-        }
-        
-        return parsedDrainNamespaces.contains(namespace);
+        return watchAllNamespaces || parsedDrainNamespaces.contains(namespace);
     }
 
     @POST
