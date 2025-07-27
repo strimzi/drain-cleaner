@@ -54,8 +54,7 @@ public class ValidatingWebhook {
     @Inject
     KubernetesClient client;
 
-    private List<String> parsedDrainNamespaces;
-    private boolean watchAllNamespaces;
+    private List<String> parsedDrainNamespaces = Collections.emptyList();
 
     // Default constructor => used in production
     @SuppressWarnings("unused")
@@ -85,11 +84,9 @@ public class ValidatingWebhook {
     @PostConstruct
     public void initializeNamespaces() {
         if (!drainNamespaces.isPresent() || drainNamespaces.get().trim().isEmpty() || drainNamespaces.get().trim().equals("*")) {
-            watchAllNamespaces = true;
             parsedDrainNamespaces = Collections.emptyList();
             LOG.info("Drain Cleaner will watch all namespaces");
         } else {
-            watchAllNamespaces = false;
             parsedDrainNamespaces = Arrays.stream(drainNamespaces.get().split(","))
                     .map(String::trim)
                     .filter(ns -> !ns.isEmpty())
@@ -138,7 +135,7 @@ public class ValidatingWebhook {
     }
 
     private boolean isNamespaceWatched(String namespace) {
-        return watchAllNamespaces || parsedDrainNamespaces.contains(namespace);
+        return parsedDrainNamespaces.isEmpty() || parsedDrainNamespaces.contains(namespace);
     }
 
     @POST
