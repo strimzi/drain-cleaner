@@ -4,9 +4,17 @@ metadata:
   name: strimzi-drain-cleaner
   labels:
     {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
-  {{- if .Values.certManager.create }}
+    {{- with .Values.webhook.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- if (or .Values.certManager.create .Values.webhook.annotations) }}
   annotations:
+    {{- if .Values.certManager.create }}
     cert-manager.io/inject-ca-from: {{default .Release.Namespace .Values.namespace.name }}/strimzi-drain-cleaner
+    {{- end }}
+    {{- if .Values.webhook.annotations }}
+    {{- toYaml .Values.webhook.annotations | nindent 4 }}
+    {{- end }}
   {{- end }}
 webhooks:
   - name: strimzi-drain-cleaner.strimzi.io
