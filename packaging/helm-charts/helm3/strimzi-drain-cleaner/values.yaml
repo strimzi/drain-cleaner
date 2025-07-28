@@ -102,3 +102,5 @@ env:
 
 webhook:
   failurePolicy: Ignore
+  labels: {}
+  annotations: {}
