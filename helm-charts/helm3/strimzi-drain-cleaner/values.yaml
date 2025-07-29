@@ -102,3 +102,4 @@ env:
 
 webhook:
   failurePolicy: Ignore
+  timeoutSeconds: 5

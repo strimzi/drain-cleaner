@@ -159,6 +159,8 @@ env:
     value: "20000"
 ```
 
+> Note: When configuring the timeout values, it is important to update the `timeoutSeconds` in the `ValidatingWebhookConfiguration` to at least match the timeout values.
+
 ## See it in action
 
 You can easily test how it works:

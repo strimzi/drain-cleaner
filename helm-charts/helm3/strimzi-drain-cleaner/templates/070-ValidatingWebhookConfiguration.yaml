@@ -32,4 +32,4 @@ webhooks:
     {{- end }}
     sideEffects: None
     failurePolicy: {{ .Values.webhook.failurePolicy }}
-    timeoutSeconds: 5
+    timeoutSeconds: {{ .Values.webhook.timeoutSeconds }}
