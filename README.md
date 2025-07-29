@@ -139,6 +139,26 @@ When enabled, can also use the following environment variables to configure the 
 
 The best way to configure `STRIMZI_CERTIFICATE_WATCH_NAMESPACE` and `STRIMZI_CERTIFICATE_WATCH_POD_NAME` is using the [Kubernetes Downward API](https://kubernetes.io/docs/concepts/workloads/pods/downward-api/).
 
+## Customizing the Quarkus Kubernetes Client
+
+The [Quarkus Kubernetes Client](https://quarkus.io/guides/kubernetes-client) is used by the Drain Cleaner to interact with the Kubernetes API and the following properties can be overridden when starting the application:
+
+| Environment Variable                           | Description                                                                               |
+| ---------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `QUARKUS_KUBERNETES_CLIENT_CONNECTION_TIMEOUT` | Maximum amount of time to wait for a connection with the API server to be established     |
+| `QUARKUS_KUBERNETES_CLIENT_REQUEST_TIMEOUT`    | Maximum amount of time to wait for a request to the API server to be completed            |
+
+As an example, to set the connection timeout to 10 seconds and the request timeout to 20 seconds, one can inject the following environment variables into the Drain Cleaner `Deployment`:
+
+```yaml
+# strimzi-drain-cleaner Deployment
+env:
+  - name: QUARKUS_KUBERNETES_CLIENT_CONNECTION_TIMEOUT
+    value: "10000"
+  - name: QUARKUS_KUBERNETES_CLIENT_REQUEST_TIMEOUT
+    value: "20000"
+```
+
 ## See it in action
 
 You can easily test how it works:
