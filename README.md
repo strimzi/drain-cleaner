@@ -159,7 +159,7 @@ env:
     value: "20000"
 ```
 
-> Note: When configuring the timeout values, it is important to update the `timeoutSeconds` in the `ValidatingWebhookConfiguration` to at least match the timeout values.
+> **Note**: When configuring the timeout values, it is important to update the `timeoutSeconds` in the `ValidatingWebhookConfiguration` to be larger than the sum of your connection and request timeout values to ensure the API server doesn't timeout the webhook before Drain Cleaner completes its Kubernetes API operations.
 
 ## See it in action
 
