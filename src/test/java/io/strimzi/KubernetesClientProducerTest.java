@@ -31,7 +31,7 @@ public class KubernetesClientProducerTest {
      */
     @Test
     public void testKubernetesClientCreationWithDefaults() {
-        // Create client with default configuration (no custom timeouts)
+        // Create client with default configuration
         KubernetesClient client = producer.kubernetesClient();
         
         // Verify the client was created

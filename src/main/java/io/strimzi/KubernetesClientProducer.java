@@ -24,9 +24,6 @@ import java.util.Optional;
 @ApplicationScoped
 public final class KubernetesClientProducer {
 
-    /**
-     * Logger for this class.
-     */
     private static final Logger LOG = LoggerFactory.getLogger(KubernetesClientProducer.class);
 
     /**
