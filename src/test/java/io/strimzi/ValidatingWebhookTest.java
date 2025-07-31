@@ -583,4 +583,139 @@ public class ValidatingWebhookTest {
     private AdmissionReview reviewRequest(boolean dryRun, Map<String, String> labels)   {
         return reviewRequest(dryRun, labels, null);
     }
+
+    @Test
+    public void testNamespaceFilteringEmptyDrainNamespaces() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        // Empty drainNamespaces should watch all namespaces
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "");
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testNamespaceFilteringWithWatchedNamespace() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        // my-namespace is in the drain namespaces list
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "my-namespace,other-namespace");
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testNamespaceFilteringWithUnwatchedNamespace() {
+        // Set up different namespace than "my-namespace"
+        NonNamespaceOperation<Pod, PodList, PodResource> unwatchedInNamespace = mock(NonNamespaceOperation.class);
+        PodResource unwatchedPodResource = mock(PodResource.class);
+        when(unwatchedInNamespace.withName(any())).thenReturn(unwatchedPodResource);
+        when(pods.inNamespace(eq("unwatched-namespace"))).thenReturn(unwatchedInNamespace);
+        
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        
+        // Create request for unwatched namespace
+        Eviction eviction = new EvictionBuilder()
+                .withNewMetadata()
+                    .withName("my-cluster-kafka-1")
+                    .withNamespace("unwatched-namespace")
+                    .withLabels(labels)
+                .endMetadata()
+                .build();
+
+        AdmissionRequest admissionRequest = new AdmissionRequest();
+        admissionRequest.setObject(eviction);
+        admissionRequest.setDryRun(false);
+        admissionRequest.setUid("SOME-UUID");
+
+        AdmissionReview request = new AdmissionReviewBuilder()
+                .withRequest(admissionRequest)
+                .build();
+
+        // unwatched-namespace is not in the drain namespaces list
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "my-namespace,other-namespace");
+        AdmissionReview reviewResponse = webhook.webhook(request);
+
+        // Should allow the eviction since namespace is not watched
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        // Should not even try to get the pod since namespace is filtered out
+        verify(unwatchedPodResource, never()).get();
+        verify(unwatchedPodResource, never()).patch((Pod) any());
+    }
+
+    @Test
+    public void testNamespaceFilteringWithSpacesInList() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        // Test with spaces around namespace names
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, " my-namespace , other-namespace ");
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
+    public void testNamespaceFilteringWithWildcard() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        // "*" should watch all namespaces (same as empty string)
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "*");
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
 }

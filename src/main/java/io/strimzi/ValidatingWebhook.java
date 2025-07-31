@@ -15,6 +15,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -24,6 +25,11 @@ import jakarta.ws.rs.core.MediaType;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @Path("/drainer")
 public class ValidatingWebhook {
@@ -42,8 +48,13 @@ public class ValidatingWebhook {
     @ConfigProperty(name = "strimzi.deny.eviction")
     boolean denyEviction;
 
+    @ConfigProperty(name = "strimzi.drain.namespaces")
+    Optional<String> drainNamespaces;
+
     @Inject
     KubernetesClient client;
+
+    private List<String> parsedDrainNamespaces = Collections.emptyList();
 
     // Default constructor => used in production
     @SuppressWarnings("unused")
@@ -56,6 +67,32 @@ public class ValidatingWebhook {
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
+        this.drainNamespaces = Optional.empty();
+        initializeNamespaces();
+    }
+
+    // Parametrized constructor for tests with namespace filtering
+    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction, String drainNamespaces) {
+        this.client = client;
+        this.drainZooKeeper = drainZooKeeper;
+        this.drainKafka = drainKafka;
+        this.denyEviction = denyEviction;
+        this.drainNamespaces = Optional.ofNullable(drainNamespaces);
+        initializeNamespaces();
+    }
+
+    @PostConstruct
+    public void initializeNamespaces() {
+        if (!drainNamespaces.isPresent() || drainNamespaces.get().trim().isEmpty() || drainNamespaces.get().trim().equals("*")) {
+            parsedDrainNamespaces = Collections.emptyList();
+            LOG.info("Drain Cleaner will watch all namespaces");
+        } else {
+            parsedDrainNamespaces = Arrays.stream(drainNamespaces.get().split(","))
+                    .map(String::trim)
+                    .filter(ns -> !ns.isEmpty())
+                    .collect(Collectors.toList());
+            LOG.info("Drain Cleaner will watch namespaces: {}", parsedDrainNamespaces);
+        }
     }
 
     private EvictionRequest extractEviction(AdmissionRequest request)    {
@@ -97,6 +134,10 @@ public class ValidatingWebhook {
         }
     }
 
+    private boolean isNamespaceWatched(String namespace) {
+        return parsedDrainNamespaces.isEmpty() || parsedDrainNamespaces.contains(namespace);
+    }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -119,6 +160,8 @@ public class ValidatingWebhook {
 
             if (name == null || namespace == null) {
                 LOG.warn("Failed to decode pod name or namespace from the eviction webhook (pod: {}, namespace: {})", name, namespace);
+            } else if (!isNamespaceWatched(namespace)) {
+                LOG.debug("Ignoring eviction request for Pod {} in namespace {} - namespace not in watch list", name, namespace);
             } else {
                 Pod pod = client.pods().inNamespace(namespace).withName(name).get();
 
