@@ -104,3 +104,4 @@ webhook:
   failurePolicy: Ignore
   labels: {}
   annotations: {}
+  timeoutSeconds: 5
