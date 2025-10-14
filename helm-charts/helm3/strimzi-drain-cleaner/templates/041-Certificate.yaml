@@ -15,6 +15,6 @@ spec:
   - strimzi-drain-cleaner
   issuerRef:
     group: cert-manager.io
-    kind: {{ default "Issuer" .Values.certManager.issuer.kind }}
-    name: {{ default "strimzi-drain-cleaner" .Values.certManager.issuer.name }}
+    kind: Issuer
+    name: strimzi-drain-cleaner
 {{- end }}

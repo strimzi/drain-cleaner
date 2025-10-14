@@ -25,11 +25,6 @@ serviceAccount:
 # Whether the Certificate and Issuer custom resources should be created
 certManager:
   create: true
-  issuer:
-    # Kind of cert-manager issuer to use: Issuer or ClusterIssuer
-    kind: Issuer
-    # Name of the issuer to reference / create
-    name: strimzi-drain-cleaner
 
 secret:
   create: false
