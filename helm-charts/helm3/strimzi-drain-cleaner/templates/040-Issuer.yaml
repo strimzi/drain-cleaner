@@ -1,8 +1,8 @@
-{{- if .Values.certManager.create -}}
+{{- if and .Values.certManager.create (eq (default "Issuer" .Values.certManager.issuer.kind) "Issuer") -}}
 apiVersion: cert-manager.io/v1
 kind: Issuer
 metadata:
-  name: strimzi-drain-cleaner
+  name: {{ default "strimzi-drain-cleaner" .Values.certManager.issuer.name }}
   labels:
     {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
   namespace: {{ default .Release.Namespace .Values.namespace.name }}

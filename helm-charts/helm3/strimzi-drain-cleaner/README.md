@@ -181,6 +181,22 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `deploymentStrategy`     | Adjust the Kubernetes rollout strategy of the Drain Cleaner Deployment | `{}`            |
 | `webhook.faillurePolicy` | Override default validating webhook failurePolicy                      | `Ignore`        |
 
+### Cert-manager issuer configuration
+
+When using cert-manager, you can control the issuer kind and name:
+
+```
+certManager:
+  create: true
+  issuer:
+    kind: ClusterIssuer # or Issuer (default)
+    name: my-cluster-issuer
+```
+
+Notes:
+- When `kind` is `Issuer`, the chart will create a self-signed `Issuer` named from `certManager.issuer.name` (defaults to `strimzi-drain-cleaner`) in the target namespace.
+- When `kind` is `ClusterIssuer`, no namespaced `Issuer` is created; the `Certificate` will reference the provided `ClusterIssuer` by `name`.
+
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
 ```bash
