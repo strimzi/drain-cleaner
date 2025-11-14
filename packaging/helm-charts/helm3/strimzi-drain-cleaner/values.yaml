@@ -62,6 +62,10 @@ securityContext: {}
   # Specifies optional security context, depending your environment prerequisites.
   # If you want to specify security contexts add them below and remove curly braces above.
 
+podSecurityContext: {}
+  # Specifies optional pod security context, depending your environment prerequisites.
+  # If you want to specify pod security contexts add them below and remove curly braces above.
+
 deploymentLabels: {}
   # Specifies optional custom labels for Deployment.
   # If you want to add custom labels, add them below and remove curly braces above.
