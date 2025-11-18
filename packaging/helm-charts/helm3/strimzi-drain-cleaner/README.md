@@ -183,6 +183,8 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `webhook.labels`         | Additional labels of the ValidatingWebhookConfiguration                | `{}`            |
 | `webhook.annotations`    | Additional annotations of the ValidatingWebhookConfiguration           | `{}`            |
 | `webhook.timeoutSeconds` | Override default validating webhook timeoutSeconds                     | `5`             |
+| `securityContext`        | Set the security context for the drain cleaner container               | `{}`            |
+| `podSecurityContext`     | Set the pod security context for the drain cleaner pod                 | `{}`            |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
