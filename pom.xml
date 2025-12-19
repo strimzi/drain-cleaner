@@ -58,7 +58,7 @@
     <quarkus.platform.version>3.20.3</quarkus.platform.version>
 
     <!-- Other versions - used in Test -->
-    <log4j.version>2.24.3</log4j.version>
+    <log4j.version>2.25.3</log4j.version>
     <bouncycastle.version>1.80</bouncycastle.version>
     <skodjob.test-frame.version>1.0.0</skodjob.test-frame.version>
   </properties>
