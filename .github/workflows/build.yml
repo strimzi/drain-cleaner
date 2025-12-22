@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - "main"
+      - "gha-migration"
       - "release-*"
   pull_request:
     branches:
@@ -71,7 +71,7 @@ jobs:
       - build-drain-cleaner
       - build-containers
       - run-systemtests
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ github.ref == 'refs/heads/gha-migration' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
