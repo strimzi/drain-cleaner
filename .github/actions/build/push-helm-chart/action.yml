@@ -21,12 +21,12 @@ runs:
     - name: Download release archives artifact
       uses: actions/download-artifact@v4
       with:
-        name: ReleaseArchives
+        name: release.tar
         path: ./
 
     - name: Extract release archives
       shell: bash
-      run: tar -xvf ReleaseArchives.tar
+      run: tar -xvf release.tar
 
     - name: Login to Helm OCI registry
       shell: bash
