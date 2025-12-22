@@ -58,7 +58,7 @@ runs:
         TEST_LOG_DIR: systemtest/target/logs
 
     - name: Publish test logs
-      if: always()
+      if: failure()
       uses: actions/upload-artifact@v4
       with:
         name: systemtest-logs-${{ inputs.architecture }}-${{ inputs.installType }}
