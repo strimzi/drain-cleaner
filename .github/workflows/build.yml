@@ -1,0 +1,90 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - "main"
+      - "release-*"
+  pull_request:
+    branches:
+      - "*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-drain-cleaner:
+    name: Build Drain Cleaner
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/build/build-binaries
+        with:
+          mvnArgs: "-B -Dquarkus.native.container-build=true"
+          runnerArch: "amd64"
+
+  build-containers:
+    name: Build Containers
+    needs:
+      - build-drain-cleaner
+    strategy:
+      matrix:
+        architecture:
+          - amd64
+          - arm64
+          - s390x
+          - ppc64le
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: strimzi/strimzi-kafka-operator/.github/actions/build/containers-build@main
+        with:
+          architecture: ${{ matrix.architecture }}
+          runnerArch: "amd64"
+
+  run-systemtests:
+    name: Run System Tests
+    needs:
+      - build-containers
+    strategy:
+      matrix:
+        architecture:
+          - amd64
+        # TODO - allow this
+#          - arm64
+        installType:
+          - Bundle
+          - Helm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/build/run-systemtests
+        with:
+          architecture: ${{ matrix.architecture }}
+          runnerArch: ${{ matrix.architecture }}
+          installType: ${{ matrix.installType }}
+
+  push-containers:
+    name: Push Containers
+    needs:
+      - build-drain-cleaner
+      - build-containers
+      - run-systemtests
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      DOCKER_REGISTRY: "quay.io"
+      DOCKER_ORG: "strimzi"
+      DOCKER_TAG: "latest"
+    steps:
+      - uses: actions/checkout@v5
+      - uses: strimzi/strimzi-kafka-operator/.github/actions/build/containers-push@main
+        with:
+          architectures: "amd64,arm64,ppc64le,s390x"
+          runnerArch: "amd64"
+          quayUser: ${{ secrets.QUAY_USER }}
+          quayPass: ${{ secrets.QUAY_PASS }}

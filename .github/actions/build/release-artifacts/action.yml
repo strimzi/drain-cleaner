@@ -1,0 +1,52 @@
+name: "Build Release Artifacts"
+description: "Builds release artifacts (tar.gz, zip, Helm chart)"
+
+inputs:
+  releaseVersion:
+    description: "Release version (e.g., 1.5.0)"
+    required: true
+  runnerArch:
+    description: "Runner architecture (amd64, arm64)"
+    required: false
+    default: "amd64"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: "17"
+
+    - name: Install Helm
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-helm@main
+
+    - name: Restore Maven cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/.m2/repository
+        key: maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          maven-
+
+    - name: Build release artifacts
+      shell: bash
+      run: make release
+      env:
+        RELEASE_VERSION: ${{ inputs.releaseVersion }}
+        MVN_ARGS: "-B"
+
+    - name: Create release archives tarball
+      shell: bash
+      run: |
+        tar -cvpf ReleaseArchives.tar \
+          strimzi-drain-cleaner-${{ inputs.releaseVersion }}.tar.gz \
+          strimzi-drain-cleaner-${{ inputs.releaseVersion }}.zip \
+          strimzi-drain-cleaner-helm-3-chart-${{ inputs.releaseVersion }}.tgz
+
+    - name: Upload release archives
+      uses: actions/upload-artifact@v4
+      with:
+        name: ReleaseArchives
+        path: ReleaseArchives.tar

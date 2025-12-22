@@ -1,0 +1,70 @@
+name: "Run Drain Cleaner System Tests"
+description: "Run drain-cleaner system tests with Kind cluster"
+
+inputs:
+  architecture:
+    description: "Architecture to test"
+    required: false
+    default: "amd64"
+  runnerArch:
+    description: "Architecture of GitHub runner"
+    required: false
+    default: "amd64"
+  installType:
+    description: "Installation type (Bundle or Helm)"
+    required: false
+    default: "Bundle"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: "17"
+
+    - name: Setup Kind
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/setup-kind@main
+      with:
+        architecture: ${{ inputs.architecture }}
+
+    - name: Download container artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: containers-${{ inputs.architecture }}.tar
+        path: ./
+
+    - name: Extract container archive
+      shell: bash
+      run: tar -xvf containers-${{ inputs.architecture }}.tar
+
+    - name: Load, tag and push containers to local registry
+      shell: bash
+      run: |
+        make docker_load
+        make docker_tag
+        make docker_push
+      env:
+        DOCKER_ARCHITECTURE: ${{ inputs.architecture }}
+        BUILD_TAG: latest-${{ inputs.architecture }}
+        DOCKER_REGISTRY: localhost:5000
+        DOCKER_ORG: strimzi
+        DOCKER_TAG: latest
+
+    - name: Run systemtests - ${{ inputs.installType }} installation
+      shell: bash
+      run: mvn verify -B -Psystemtest
+      env:
+        DOCKER_REGISTRY: localhost:5000
+        DOCKER_ORG: strimzi
+        DOCKER_TAG: latest
+        DC_INSTALL_TYPE: ${{ inputs.installType }}
+        TEST_LOG_DIR: systemtest/target/logs
+
+    - name: Publish test logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: systemtest-logs-${{ inputs.architecture }}-${{ inputs.installType }}
+        path: systemtest/target/logs

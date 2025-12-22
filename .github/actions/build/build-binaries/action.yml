@@ -1,0 +1,64 @@
+name: "Build Drain Cleaner Binaries"
+description: "Build and archive drain-cleaner binaries with Quarkus native container build"
+
+inputs:
+  mvnArgs:
+    description: "Maven arguments for the build"
+    required: false
+    default: ""
+  runnerArch:
+    description: "Architecture of GitHub runner"
+    required: false
+    default: "amd64"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: "temurin"
+        java-version: "17"
+
+    - name: Restore Maven cache
+      uses: actions/cache/restore@v4
+      with:
+        path: ~/.m2/repository
+        key: maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          maven-
+
+    - name: Build and test
+      shell: bash
+      run: make java_verify
+      env:
+        MVN_ARGS: ${{ inputs.mvnArgs }}
+
+    - name: Check for uncommitted files
+      shell: bash
+      run: .azure/scripts/uncommitted-changes.sh
+
+    - name: Create tarball with target directory
+      shell: bash
+      run: tar -cvpf drain-cleaner-binaries.tar ./target
+
+    - name: Upload binaries artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: drain-cleaner-binaries.tar
+        path: drain-cleaner-binaries.tar
+
+    - name: Clean external SNAPSHOT dependencies from Maven repository
+      if: github.ref == 'refs/heads/main'
+      shell: bash
+      run: |
+        mvn dependency:purge-local-repository \
+        -DsnapshotsOnly=true \
+        -DreResolve=false || true
+
+    - name: Save Maven cache
+      if: github.ref == 'refs/heads/main'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/.m2/repository
+        key: maven-${{ hashFiles('**/pom.xml') }}
