@@ -133,5 +133,7 @@ jobs:
       - uses: ./.github/actions/build/push-helm-chart
         with:
           releaseVersion: ${{ inputs.releaseVersion }}
-          quayHelmUser: ${{ secrets.QUAY_HELM_USER }}
-          quayHelmPass: ${{ secrets.QUAY_HELM_PASS }}
+#          quayHelmUser: ${{ secrets.QUAY_HELM_USER }}
+#          quayHelmPass: ${{ secrets.QUAY_HELM_PASS }}
+          quayHelmUser: ${{ secrets.QUAY_USER }}
+          quayHelmPass: ${{ secrets.QUAY_PASS }}

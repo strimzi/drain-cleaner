@@ -35,4 +35,4 @@ runs:
     - name: Push Helm Chart to OCI registry
       shell: bash
       run: |
-        helm push strimzi-drain-cleaner-helm-3-chart-${{ inputs.releaseVersion }}.tgz oci://quay.io/strimzi-helm
+        helm push strimzi-drain-cleaner-helm-3-chart-${{ inputs.releaseVersion }}.tgz oci://quay.io/jstejska

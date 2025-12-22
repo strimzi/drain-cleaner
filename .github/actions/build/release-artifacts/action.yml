@@ -37,7 +37,7 @@ runs:
     - name: Create release archives tarball
       shell: bash
       run: |
-        tar -cvpf ReleaseArchives.tar \
+        tar -cvpf release.tar \
           strimzi-drain-cleaner-${{ inputs.releaseVersion }}.tar.gz \
           strimzi-drain-cleaner-${{ inputs.releaseVersion }}.zip \
           strimzi-drain-cleaner-helm-3-chart-${{ inputs.releaseVersion }}.tgz
@@ -45,5 +45,5 @@ runs:
     - name: Upload release archives
       uses: actions/upload-artifact@v4
       with:
-        name: ReleaseArchives
-        path: ReleaseArchives.tar
+        name: release.tar
+        path: release.tar
