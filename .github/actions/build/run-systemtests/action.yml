@@ -53,12 +53,12 @@ runs:
       run: mvn verify -B -Psystemtest
       env:
         DOCKER_ORG: strimzi
-        DOCKER_TAG: latest
+        DOCKER_TAG: latest-${{ inputs.architecture }}
         DC_INSTALL_TYPE: ${{ inputs.installType }}
         TEST_LOG_DIR: systemtest/target/logs
 
     - name: Publish test logs
-      if: failure()
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: systemtest-logs-${{ inputs.architecture }}-${{ inputs.installType }}
