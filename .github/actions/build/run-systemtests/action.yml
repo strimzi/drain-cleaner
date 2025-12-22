@@ -25,7 +25,7 @@ runs:
         java-version: "17"
 
     - name: Setup Kind
-      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/setup-kind@main
+      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/setup-kind@improve-actions-reusability
       with:
         architecture: ${{ inputs.architecture }}
 

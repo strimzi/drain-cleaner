@@ -46,11 +46,11 @@ jobs:
       id-token: write
     env:
       DOCKER_REGISTRY: "quay.io"
-      DOCKER_ORG: "strimzi"
+      DOCKER_ORG: "jstejska"
       DOCKER_TAG: "${{ inputs.releaseVersion }}-${{ inputs.releaseSuffix }}"
     steps:
       - uses: actions/checkout@v5
-      - uses: strimzi/strimzi-kafka-operator/.github/actions/build/containers-push@main
+      - uses: frawless/strimzi-kafka-operator/.github/actions/build/containers-push@improve-actions-reusability
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
           runnerArch: "amd64"
@@ -76,11 +76,11 @@ jobs:
       id-token: write
     env:
       DOCKER_REGISTRY: "quay.io"
-      DOCKER_ORG: "strimzi"
+      DOCKER_ORG: "jstejska"
       DOCKER_TAG: "${{ inputs.releaseVersion }}"
     steps:
       - uses: actions/checkout@v5
-      - uses: strimzi/strimzi-kafka-operator/.github/actions/build/containers-push@main
+      - uses: frawless/strimzi-kafka-operator/.github/actions/build/containers-push@improve-actions-reusability
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
           runnerArch: "amd64"
@@ -100,7 +100,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: strimzi/strimzi-kafka-operator/.github/actions/build/publish-helm-chart@main
+      - uses: frawless/strimzi-kafka-operator/.github/actions/build/publish-helm-chart@improve-actions-reusability
         with:
           releaseVersion: ${{ inputs.releaseVersion }}
           quayHelmUser: ${{ secrets.QUAY_HELM_USER }}

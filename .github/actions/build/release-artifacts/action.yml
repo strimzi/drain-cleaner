@@ -20,7 +20,7 @@ runs:
         java-version: "17"
 
     - name: Install Helm
-      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-helm@main
+      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/install-helm@improve-actions-reusability
 
     - name: Restore Maven cache
       uses: actions/cache/restore@v4
