@@ -48,15 +48,22 @@ jobs:
     needs:
       - build-containers
     strategy:
+      fail-fast: false
       matrix:
-        architecture:
-          - amd64
-        # TODO - allow this
-#          - arm64
-        installType:
-          - Bundle
-          - Helm
-    runs-on: ubuntu-latest
+        include:
+          - architecture: amd64
+            installType: Bundle
+            runner: ubuntu-latest
+          - architecture: amd64
+            installType: Helm
+            runner: ubuntu-latest
+          # - architecture: arm64
+          #   installType: Bundle
+          #   runner: ubuntu-24.04-arm64
+          # - architecture: arm64
+          #   installType: Helm
+          #   runner: ubuntu-24.04-arm64
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/build/run-systemtests
