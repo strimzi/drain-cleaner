@@ -45,7 +45,6 @@ runs:
       env:
         DOCKER_ARCHITECTURE: ${{ inputs.architecture }}
         BUILD_TAG: latest
-        DOCKER_REGISTRY: localhost:5000
         DOCKER_ORG: strimzi
         DOCKER_TAG: latest
 
@@ -53,7 +52,6 @@ runs:
       shell: bash
       run: mvn verify -B -Psystemtest
       env:
-        DOCKER_REGISTRY: localhost:5000
         DOCKER_ORG: strimzi
         DOCKER_TAG: latest
         DC_INSTALL_TYPE: ${{ inputs.installType }}
