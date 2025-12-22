@@ -44,7 +44,7 @@ runs:
         make docker_push
       env:
         DOCKER_ARCHITECTURE: ${{ inputs.architecture }}
-        BUILD_TAG: latest-${{ inputs.architecture }}
+        BUILD_TAG: latest
         DOCKER_REGISTRY: localhost:5000
         DOCKER_ORG: strimzi
         DOCKER_TAG: latest
