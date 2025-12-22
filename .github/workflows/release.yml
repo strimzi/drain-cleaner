@@ -80,7 +80,7 @@ jobs:
       DOCKER_TAG: "${{ inputs.releaseVersion }}-${{ inputs.releaseSuffix }}"
     steps:
       - uses: actions/checkout@v5
-      - uses: frawless/strimzi-kafka-operator/.github/actions/build/containers-push@improve-actions-reusability
+      - uses: ./.github/actions/build/push-containers
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
           runnerArch: "amd64"
@@ -110,7 +110,7 @@ jobs:
       DOCKER_TAG: "${{ inputs.releaseVersion }}"
     steps:
       - uses: actions/checkout@v5
-      - uses: frawless/strimzi-kafka-operator/.github/actions/build/containers-push@improve-actions-reusability
+      - uses: ./.github/actions/build/push-containers
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
           runnerArch: "amd64"
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: frawless/strimzi-kafka-operator/.github/actions/build/publish-helm-chart@improve-actions-reusability
+      - uses: ./.github/actions/build/push-helm-chart
         with:
           releaseVersion: ${{ inputs.releaseVersion }}
           quayHelmUser: ${{ secrets.QUAY_HELM_USER }}

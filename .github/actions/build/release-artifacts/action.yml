@@ -14,10 +14,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: "temurin"
-        java-version: "17"
+      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/setup-java@improve-actions-reusability
 
     - name: Install Helm
       uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/install-helm@improve-actions-reusability

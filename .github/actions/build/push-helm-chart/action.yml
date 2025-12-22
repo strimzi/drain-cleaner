@@ -1,0 +1,38 @@
+name: "Push Drain Cleaner Helm Chart"
+description: "Push drain-cleaner Helm chart as OCI artifact"
+
+inputs:
+  releaseVersion:
+    description: "Release version (e.g., 1.5.0)"
+    required: true
+  quayHelmUser:
+    description: "Quay.io Helm repository username"
+    required: true
+  quayHelmPass:
+    description: "Quay.io Helm repository password"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Helm
+      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/install-helm@improve-actions-reusability
+
+    - name: Download release archives artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: ReleaseArchives
+        path: ./
+
+    - name: Extract release archives
+      shell: bash
+      run: tar -xvf ReleaseArchives.tar
+
+    - name: Login to Helm OCI registry
+      shell: bash
+      run: helm registry login -u ${{ inputs.quayHelmUser }} -p ${{ inputs.quayHelmPass }} quay.io
+
+    - name: Push Helm Chart to OCI registry
+      shell: bash
+      run: |
+        helm push strimzi-drain-cleaner-helm-3-chart-${{ inputs.releaseVersion }}.tgz oci://quay.io/strimzi-helm
