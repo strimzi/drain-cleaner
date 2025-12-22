@@ -62,7 +62,7 @@ jobs:
           oras push ghcr.io/${{ env.REPOSITORY }}/drain-cleaner-binaries:${{ env.TAG }} drain-cleaner-binaries.tar:application/x-tar
         env:
           TAG: ${{ inputs.releaseVersion }}-${{ inputs.sourceBuildRunId }}
-          REPOSITORY: "strimzi"
+          REPOSITORY: "frawless"
 
   push-containers-with-suffix:
     name: Push Containers with suffix
