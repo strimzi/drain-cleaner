@@ -14,10 +14,10 @@ runs:
   using: "composite"
   steps:
     - name: Setup Java
-      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/setup-java@improve-actions-reusability
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/setup-java@main
 
     - name: Install Helm
-      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/install-helm@improve-actions-reusability
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-helm@main
 
     - name: Restore Maven cache
       uses: actions/cache/restore@v4

@@ -19,7 +19,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup Docker
-      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/install-docker@improve-actions-reusability
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-docker@main
 
     - name: Download binaries from this workflow
       if: ${{ inputs.buildRunId == '' }}

@@ -19,10 +19,10 @@ runs:
   using: "composite"
   steps:
     - name: Setup Java
-      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/setup-java@improve-actions-reusability
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/setup-java@main
 
     - name: Setup Kind
-      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/setup-kind@improve-actions-reusability
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/setup-kind@main
       with:
         architecture: ${{ inputs.architecture }}
 

@@ -16,7 +16,7 @@ runs:
   using: "composite"
   steps:
     - name: Install Helm
-      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/install-helm@improve-actions-reusability
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-helm@main
 
     - name: Download release archives artifact
       uses: actions/download-artifact@v4

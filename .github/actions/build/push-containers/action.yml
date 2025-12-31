@@ -33,7 +33,7 @@ runs:
       uses: sigstore/cosign-installer@v3.10.0
 
     - name: Setup Docker
-      uses: frawless/strimzi-kafka-operator/.github/actions/dependencies/install-docker@improve-actions-reusability
+      uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-docker@main
 
     - name: Download container artifacts from external build
       if: ${{ inputs.buildRunId != '' }}
