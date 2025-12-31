@@ -57,12 +57,12 @@ jobs:
           - architecture: amd64
             installType: Helm
             runner: ubuntu-latest
-          # - architecture: arm64
-          #   installType: Bundle
-          #   runner: ubuntu-24.04-arm64
-          # - architecture: arm64
-          #   installType: Helm
-          #   runner: ubuntu-24.04-arm64
+          - architecture: arm64
+            installType: Bundle
+            runner: oracle-vm-4cpu-16gb-x86-64
+          - architecture: arm64
+            installType: Helm
+            runner: oracle-vm-4cpu-16gb-x86-64
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v5
