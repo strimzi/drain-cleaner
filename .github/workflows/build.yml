@@ -59,10 +59,10 @@ jobs:
             runner: ubuntu-latest
           - architecture: arm64
             installType: Bundle
-            runner: oracle-vm-4cpu-16gb-x86-64
+            runner: oracle-vm-4cpu-16gb-arm64
           - architecture: arm64
             installType: Helm
-            runner: oracle-vm-4cpu-16gb-x86-64
+            runner: oracle-vm-4cpu-16gb-arm64
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v5
