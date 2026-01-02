@@ -3,7 +3,7 @@ name: Build
 on:
   push:
     branches:
-      - "gha-migration"
+      - "main"
       - "release-*"
   pull_request:
     branches:
@@ -59,10 +59,10 @@ jobs:
             runner: ubuntu-latest
           - architecture: arm64
             installType: Bundle
-            runner: oracle-vm-4cpu-16gb-x86-64
+            runner: oracle-vm-4cpu-16gb-arm64
           - architecture: arm64
             installType: Helm
-            runner: oracle-vm-4cpu-16gb-x86-64
+            runner: oracle-vm-4cpu-16gb-arm64
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v5
@@ -78,7 +78,7 @@ jobs:
       - build-drain-cleaner
       - build-containers
       - run-systemtests
-    if: ${{ github.ref == 'refs/heads/gha-migration' }}
+    if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
