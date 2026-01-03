@@ -15,12 +15,14 @@ runs:
   steps:
     - name: Setup Java
       uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/setup-java@main
+      with:
+        javaVersion: "17"
 
     - name: Install Helm
       uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-helm@main
 
     - name: Restore Maven cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ~/.m2/repository
         key: maven-${{ hashFiles('**/pom.xml') }}
@@ -43,7 +45,7 @@ runs:
           strimzi-drain-cleaner-helm-3-chart-${{ inputs.releaseVersion }}.tgz
 
     - name: Upload release archives
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: release.tar
         path: release.tar

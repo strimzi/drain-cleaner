@@ -16,9 +16,11 @@ runs:
   steps:
     - name: Setup Java
       uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/setup-java@main
+      with:
+        javaVersion: "17"
 
     - name: Restore Maven cache
-      uses: actions/cache/restore@v4
+      uses: actions/cache/restore@v5
       with:
         path: ~/.m2/repository
         key: maven-${{ hashFiles('**/pom.xml') }}
@@ -40,7 +42,7 @@ runs:
       run: tar -cvpf drain-cleaner-binaries.tar ./target
 
     - name: Upload binaries artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: drain-cleaner-binaries.tar
         path: drain-cleaner-binaries.tar
@@ -55,7 +57,7 @@ runs:
 
     - name: Save Maven cache
       if: github.ref == 'refs/heads/main'
-      uses: actions/cache/save@v4
+      uses: actions/cache/save@v5
       with:
         path: ~/.m2/repository
         key: maven-${{ hashFiles('**/pom.xml') }}

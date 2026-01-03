@@ -23,13 +23,13 @@ runs:
 
     - name: Download binaries from this workflow
       if: ${{ inputs.buildRunId == '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         name: drain-cleaner-binaries.tar
 
     - name: Download binaries from external build
       if: ${{ inputs.buildRunId != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         name: drain-cleaner-binaries.tar
         run-id: ${{ inputs.buildRunId }}
@@ -57,7 +57,7 @@ runs:
           drain-cleaner-container-${{ inputs.architecture }}.tar.gz
 
     - name: Upload container artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: containers-${{ inputs.architecture }}.tar
         path: containers-${{ inputs.architecture }}.tar
