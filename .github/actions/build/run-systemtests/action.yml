@@ -27,7 +27,7 @@ runs:
         architecture: ${{ inputs.architecture }}
 
     - name: Download container artifact
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         name: containers-${{ inputs.architecture }}.tar
         path: ./
@@ -59,7 +59,7 @@ runs:
 
     - name: Publish test logs
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: systemtest-logs-${{ inputs.architecture }}-${{ inputs.installType }}
         path: systemtest/target/logs

@@ -30,14 +30,14 @@ runs:
         ARCH: ${{ inputs.runnerArch }}
 
     - name: Install Cosign
-      uses: sigstore/cosign-installer@v3.10.0
+      uses: sigstore/cosign-installer@v4.0.0
 
     - name: Setup Docker
       uses: strimzi/strimzi-kafka-operator/.github/actions/dependencies/install-docker@main
 
     - name: Download container artifacts from external build
       if: ${{ inputs.buildRunId != '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         pattern: containers-*
         path: ./
@@ -47,7 +47,7 @@ runs:
 
     - name: Download container artifacts from this workflow
       if: ${{ inputs.buildRunId == '' }}
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v7
       with:
         pattern: containers-*
         path: ./
@@ -121,7 +121,7 @@ runs:
       run: tar -z -C ./sbom/ -cvpf sbom.tar.gz ./
 
     - name: Upload SBOM artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: SBOMs-${{ env.DOCKER_TAG }}
         path: sbom.tar.gz

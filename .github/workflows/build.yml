@@ -9,6 +9,10 @@ on:
     branches:
       - "*"
 
+# Declare default permissions as read only
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -18,7 +22,7 @@ jobs:
     name: Build Drain Cleaner
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/build/build-binaries
         with:
           mvnArgs: "-B -Dquarkus.native.container-build=true"
@@ -37,7 +41,7 @@ jobs:
           - ppc64le
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/build/build-containers
         with:
           architecture: ${{ matrix.architecture }}
@@ -65,7 +69,7 @@ jobs:
             runner: oracle-vm-4cpu-16gb-arm64
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/build/run-systemtests
         with:
           architecture: ${{ matrix.architecture }}
@@ -88,7 +92,7 @@ jobs:
       DOCKER_ORG: "strimzi"
       DOCKER_TAG: "latest"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/build/push-containers
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
