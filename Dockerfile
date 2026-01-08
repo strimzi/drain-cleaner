@@ -1,5 +1,5 @@
 FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
-ARG JAVA_VERSION=17
+ARG JAVA_VERSION=21
 ARG TARGETPLATFORM
 
 USER root
@@ -9,7 +9,7 @@ RUN microdnf update -y \
     && microdnf clean all -y
 
 # Set JAVA_HOME env var
-ENV JAVA_HOME=/usr/lib/jvm/jre-17
+ENV JAVA_HOME=/usr/lib/jvm/jre-${JAVA_VERSION}
 
 # Add strimzi user with UID 1001
 # The user is in the group 0 to have access to the mounted volumes and storage
