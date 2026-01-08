@@ -171,7 +171,7 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `image.registry`         | Override default Drain Cleaner image registry                          | `quay.io`       |
 | `image.repository`       | Override default Drain Cleaner image repository                        | `strimzi`       |
 | `image.name`             | Drain Cleaner image name                                               | `drain-cleaner` |
-| `image.tag`              | Override default Drain Cleaner image tag                               | `1.4.0`        |
+| `image.tag`              | Override default Drain Cleaner image tag                               | `1.5.0`        |
 | `image.imagePullPolicy`  | Image pull policy for all pods deployed by Drain Cleaner               | `nil`           |
 | `image.imagePullSecrets` | List of Docker registry pull secrets                                   | `[]`            |
 | `resources`              | Configures resources for the Drain Cleaner Pod                         | `[]`            |
@@ -180,6 +180,11 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `nodeSelector`           | Add a node selector to Drain Cleaner Pod                               | `{}`            |
 | `deploymentStrategy`     | Adjust the Kubernetes rollout strategy of the Drain Cleaner Deployment | `{}`            |
 | `webhook.faillurePolicy` | Override default validating webhook failurePolicy                      | `Ignore`        |
+| `webhook.labels`         | Additional labels of the ValidatingWebhookConfiguration                | `{}`            |
+| `webhook.annotations`    | Additional annotations of the ValidatingWebhookConfiguration           | `{}`            |
+| `webhook.timeoutSeconds` | Override default validating webhook timeoutSeconds                     | `5`             |
+| `securityContext`        | Set the security context for the Drain Cleaner container               | `{}`            |
+| `podSecurityContext`     | Set the pod security context for the Drain Cleaner pod                 | `{}`            |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
