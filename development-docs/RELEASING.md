@@ -34,14 +34,18 @@ The build pipeline should automatically start for any new commit pushed into the
 ### Running the release pipeline
 
 Wait until the build pipeline is (successfully) finished for the last commit in the release branch.
-Then run the release pipeline manually from the Azure Pipelines UI.
-The release pipeline is names `drain-cleaner-release`.
+Then run the release pipeline manually from the [Github Actions UI](https://github.com/strimzi/drain-cleaner/actions/workflows/release.yml).
 When starting the new run, it will ask for several parameters which you need to fill:
 
 * Release version (for example `1.2.0`)
-* Release suffix (for example `0` - it is used to create the suffixed images such as `strimzi/drain-cleaner:1.2.0-0` to identify different builds done for example due to base image CVEs)
-* Source pipeline ID (Currently, only the build pipeline with ID `36` can be used)
-* Source build ID (the ID of the build from which the artifacts should be used - use the long build ID from the URL and not the shorter build number)
+* When running the release candidate
+  * Un-check the `Build suffixed images` - used for CVE respins for the GA release
+  * Keep the `Release suffix` to `0`
+* When running the GA release
+  * Check the `Build suffixed images`
+  * Release suffix (for example `0` - it is used to create the suffixed images such as `strimzi/drain-cleaner:1.2.0-0` to identify different builds done for example due to base image CVEs)
+* `GitHub Actions Run ID of the source build` - ID of the build of the last commit, obtained from the Actions tab URL
+  * from the specified build the artifacts will be used
 
 The release pipeline will push the images to the registry.
 It will also prepare in artifacts the ZIP and TAR.GZ archives with the installation files and with the Helm Chart.
@@ -63,7 +67,6 @@ After the release pipeline is finished, the release has to be created:
     * Update the `index.yaml` file with the `helm repo index . --merge index.yaml --url https://github.com/strimzi/drain-cleaner/releases/download/1.0.0/` command (use the right version).
     * Delete the Helm Chart archive and keep only the `index.yaml` file
     * Commit the [`index.yaml` file](https://github.com/strimzi/strimzi.github.io/blob/main/charts/index.yaml) to the Strimzi website
-    * Copy it to the operators repo [`index.yaml` file](https://github.com/strimzi/strimzi-kafka-operator/blob/main/packaging/helm-charts/index.yaml) as well
 * Update the `./install` and `./helm-charts` directories in the `main` branch with the newly released files from the release branch
 * Update the Drain Cleaner installation files in the Strimzi operators repository
 
