@@ -62,7 +62,7 @@ jobs:
           containerRegistry: "quay.io"
           containerOrg: "strimzi"
           containerTag: "latest"
-          imagesDir: "drain-cleaner-container-amd64.tar.gz"
+          imagesDir: "drain-cleaner-container-${{ matrix.architecture }}.tar.gz"
 
   run-systemtests:
     name: Run System Tests
