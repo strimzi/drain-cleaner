@@ -20,6 +20,13 @@ concurrency:
 jobs:
   build-drain-cleaner:
     name: Build Drain Cleaner
+    strategy:
+      matrix:
+        # Java 21 is used as default version
+        # In case of adding new version make sure that build-containers and deploy-java has correct static version set
+        java:
+          - version: "21"
+            mainBuild: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -33,7 +40,7 @@ jobs:
         uses: strimzi/github-actions/.github/actions/build/build-binaries@v1
         with:
           mainJavaBuild: ${{ matrix.java.mainBuild }}
-          artifactSuffix: "kafka-bridge"
+          artifactSuffix: "drain-cleaner"
           clusterOperatorBuild: "false"
         env:
           MVN_ARGS: "-B -Dquarkus.native.container-build=true"
