@@ -29,7 +29,7 @@ jobs:
       ref: ${{ github.sha }}
       architecture: "amd64"
       artifactSuffix: "drain-cleaner"
-      buildContainers: false
+      buildContainers: true
       modules: "none"
       nexusCheck: "none"
       javaVersion: "21"
