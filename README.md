@@ -1,4 +1,4 @@
-[![Build Status](https://dev.azure.com/cncf/strimzi/_apis/build/status/drain-cleaner?branchName=main)](https://dev.azure.com/cncf/strimzi/_build/latest?definitionId=36&branchName=main)
+[![Build Status](https://github.com/strimzi/drain-cleaner/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/strimzi/drain-cleaner/actions/workflows/build.yml?query=branch%3Amain)
 [![GitHub release](https://img.shields.io/github/release/strimzi/drain-cleaner.svg)](https://github.com/strimzi/drain-cleaner/releases/latest)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Twitter Follow](https://img.shields.io/twitter/follow/strimziio?style=social)](https://twitter.com/strimziio)

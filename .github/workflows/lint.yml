@@ -1,4 +1,4 @@
-name: Unit & Integration tests of Actions
+name: Lint
 
 on:
   pull_request:

@@ -31,12 +31,12 @@ runs:
     - name: Download container artifact
       uses: actions/download-artifact@v7
       with:
-        name: containers-${{ inputs.architecture }}.tar
+        name: containers-drain-cleaner-${{ inputs.architecture }}.tar
         path: ./
 
     - name: Extract container archive
       shell: bash
-      run: tar -xvf containers-${{ inputs.architecture }}.tar
+      run: tar -xvf containers-drain-cleaner-${{ inputs.architecture }}.tar
 
     - name: Load, tag and push containers to local registry
       shell: bash
