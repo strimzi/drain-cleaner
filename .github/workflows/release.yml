@@ -63,7 +63,7 @@ jobs:
       - name: Download strimzi binaries from source build
         uses: actions/download-artifact@v7
         with:
-          name: drain-cleaner-binaries.tar
+          name: binaries-drain-cleaner.tar
           run-id: ${{ inputs.sourceBuildRunId }}
           github-token: ${{ github.token }}
 
@@ -72,7 +72,7 @@ jobs:
 
       - name: Push Java artifacts to GHCR
         run: |
-          oras push ghcr.io/${{ env.REPOSITORY }}/drain-cleaner-binaries:${{ env.TAG }} drain-cleaner-binaries.tar:application/x-tar
+          oras push ghcr.io/${{ env.REPOSITORY }}/binaries-drain-cleaner:${{ env.TAG }} binaries-drain-cleaner.tar:application/x-tar
         env:
           TAG: ${{ inputs.releaseVersion }}-${{ inputs.sourceBuildRunId }}
           REPOSITORY: "strimzi"
