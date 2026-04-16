@@ -58,7 +58,7 @@
 
     <!-- Other versions - used in Test -->
     <log4j.version>2.25.4</log4j.version>
-    <bouncycastle.version>1.80</bouncycastle.version>
+    <bouncycastle.version>1.84</bouncycastle.version>
     <skodjob.test-frame.version>1.0.0</skodjob.test-frame.version>
   </properties>
   <dependencyManagement>
