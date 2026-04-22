@@ -4,10 +4,10 @@
  */
 package io.strimzi.utils.logs;
 
-import io.skodjob.testframe.LogCollector;
-import io.skodjob.testframe.LogCollectorBuilder;
-import io.skodjob.testframe.clients.KubeClient;
-import io.skodjob.testframe.clients.cmdClient.Kubectl;
+import io.skodjob.kubetest4j.LogCollector;
+import io.skodjob.kubetest4j.LogCollectorBuilder;
+import io.skodjob.kubetest4j.clients.KubeClient;
+import io.skodjob.kubetest4j.clients.cmdClient.Kubectl;
 import io.strimzi.utils.Constants;
 import io.strimzi.utils.Environment;
 
