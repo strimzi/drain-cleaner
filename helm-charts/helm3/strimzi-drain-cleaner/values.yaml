@@ -9,7 +9,7 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 1.5.0
+  tag: 1.6.0
   pullPolicy: ""
   imagePullSecrets: []
 
@@ -61,6 +61,8 @@ resources: {}
 securityContext: {}
   # Specifies optional security context, depending your environment prerequisites.
   # If you want to specify security contexts add them below and remove curly braces above.
+
+enableServiceLinks: NULL
 
 podSecurityContext: {}
   # Specifies optional pod security context, depending your environment prerequisites.
