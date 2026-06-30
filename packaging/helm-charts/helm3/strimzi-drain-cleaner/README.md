@@ -185,6 +185,7 @@ For a full list of supported options, check the [`values.yaml` file](./values.ya
 | `webhook.timeoutSeconds` | Override default validating webhook timeoutSeconds                     | `5`             |
 | `securityContext`        | Set the security context for the Drain Cleaner container               | `{}`            |
 | `podSecurityContext`     | Set the pod security context for the Drain Cleaner pod                 | `{}`            |
+| `tmpDirSizeLimit`        | Size limit for the `/tmp` emptyDir volume; empty string = no limit      | `5Mi`           |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 

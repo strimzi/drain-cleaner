@@ -58,6 +58,13 @@ resources: {}
   #   cpu: 100m
   #   memory: 128Mi
 
+# Size limit for the `/tmp` emptyDir volume mounted into the Drain Cleaner Pod.
+# Defaults to `5Mi`, which is ample for the JVM `hsperfdata` and Vert.x/Quarkus
+# temp cache that are the only things written there. Set an empty string to
+# render the volume as `emptyDir: {}` (no size limit). Mirrors the
+# `tmpDirSizeLimit` option of the strimzi-kafka-operator Helm chart.
+tmpDirSizeLimit: 5Mi
+
 securityContext: {}
   # Specifies optional security context, depending your environment prerequisites.
   # If you want to specify security contexts add them below and remove curly braces above.
