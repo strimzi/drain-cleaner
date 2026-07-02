@@ -16,13 +16,56 @@ To use it:
 * Deploy Kafka using Strimzi.
   
 ```yaml
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: controller
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  replicas: 3
+  roles:
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        deleteClaim: false
+  # Uncomment when using the legacy mode
+  # template:
+  #   podDisruptionBudget:
+  #     maxUnavailable: 0
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: broker
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  replicas: 3
+  roles:
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        deleteClaim: false
+  # Uncomment when using the legacy mode
+  # template:
+  #   podDisruptionBudget:
+  #     maxUnavailable: 0
+---
+apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
   name: my-cluster
 spec:
   kafka:
-    replicas: 3
     listeners:
       - name: plain
         port: 9092
@@ -36,39 +79,18 @@ spec:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
       transaction.state.log.min.isr: 2
-    storage:
-      type: jbod
-      volumes:
-      - id: 0
-        type: persistent-claim
-        size: 100Gi
-        deleteClaim: false
-    # Uncomment when using the legacy mode 
-    # template:
-    #   podDisruptionBudget:
-    #     maxUnavailable: 0
-  zookeeper:
-    replicas: 3
-    storage:
-      type: persistent-claim
-      size: 100Gi
-      deleteClaim: false
-    # Uncomment when using the legacy mode 
-    # template:
-    #   podDisruptionBudget:
-    #     maxUnavailable: 0
   entityOperator:
     topicOperator: {}
     userOperator: {}
 ```
 
 * Deploy the Strimzi Drain Cleaner
-* Drain the node with some Kafka or ZooKeeper pods using the [`kubectl drain` command](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/)
+* Drain the node with some Kafka broker or controller pods using the [`kubectl drain` command](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/)
 
 ## How does it work?
 
-Strimzi Drain Cleaner uses Kubernetes Admission Control features and Validating Web-hooks to find out when something tries to evict the Kafka or ZooKeeper pods.
-When it receives the eviction request for one of the Strimzi managed Kafka or ZooKeeper pods, it annotates them with the `strimzi.io/manual-rolling-update` annotation which will tell Strimzi Cluster Operator that this pod needs to be restarted and denies the eviction request.
+Strimzi Drain Cleaner uses Kubernetes Admission Control features and Validating Web-hooks to find out when something tries to evict the Kafka broker or controller pods.
+When it receives the eviction request for one of the Strimzi managed Kafka broker or controller pods, it annotates them with the `strimzi.io/manual-rolling-update` annotation which will tell Strimzi Cluster Operator that this pod needs to be restarted and denies the eviction request.
 Denying the eviction request prevents Kubernetes from restarting the Pod on their own based only on the `PodDisruptionBudget` configuration and leaves it to the Strimzi Cluster operator.
 Strimzi Cluster Operator will roll it in the next reconciliation using its algorithms which make sure the cluster is available while the Pod is restarted.
 Strimzi Cluster Operator will always roll the pods one-by-one regardless of the Pod Disruption Policy settings.
@@ -80,8 +102,8 @@ Different Kubernetes distributions and tools might react differently to the evic
 If the tools used by your Kubernetes cluster do not handle it well, you can switch the Drain Cleaner into a _legacy_ mode where the eviction requests will be allowed.
 To do so, you have to:
 * Edit the Drain Cleaner `Deployment` and set the `STRIMZI_DENY_EVICTION` environment variable to `false`.
-* Configure the `PodDisruptionBudgets` for Kafka and ZooKeeper to have `maxUnavailable` set to `0`.
-  You can configure this in the `Kafka` custom resource in `spec.kafka.template.podDisruptionBudget.maxUnavailable` and `spec.zookeeper.template.podDisruptionBudget.maxUnavailable`.
+* Configure the `PodDisruptionBudgets` for the Kafka brokers and controllers to have `maxUnavailable` set to `0`.
+  You can configure this in the `KafkaNodePool` custom resources in `spec.template.podDisruptionBudget.maxUnavailable`.
 
 Once running in the _legacy_ mode, the Drain Cleaner will still annotate the pods with the `strimzi.io/manual-rolling-update` annotation.
 But it will allow the eviction request.
@@ -89,8 +111,8 @@ The eviction request will be ignored by Kubernetes because of the PodDisruptionB
 
 ## Deployment
 
-By default, the Drain Cleaner drains Kafka and ZooKeeper pods. 
-If you want to use the Drain Cleaner with only one of them, you can edit the `Deployment` by setting the `STRIMZI_DRAIN_KAFKA` or `STRIMZI_DRAIN_ZOOKEEPER` environment variables to `false`.
+By default, the Drain Cleaner drains Kafka broker and controller pods.
+If you want to disable the draining of the Kafka pods, you can edit the `Deployment` by setting the `STRIMZI_DRAIN_KAFKA` environment variable to `false`.
 
 You can also limit the namespaces that the Drain Cleaner watches by setting the `STRIMZI_DRAIN_NAMESPACES` environment variable to a comma-separated list of namespace names.
 When this variable is set to a non-empty value, the Drain Cleaner will only process eviction requests for Strimzi pods in the specified namespaces.
@@ -172,13 +194,13 @@ You can easily test how it works:
 * Install Strimzi on your cluster
 * Deploy Kafka cluster
 * Install the Drain Cleaner
-* Drain one of the Kubernetes nodes with one of the Kafka or ZooKeeper pods
+* Drain one of the Kubernetes nodes with one of the Kafka broker or controller pods
     ```
     kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s --force
     ```
 * Watch how it works:
-    * The `kubetl drain` command will cordon the worker node and trigger the eviction of the Kafka / ZooKeeper pods running on it.
-      It will evict the Pods that can be evicted and eventually fail because Drain Cleaner denied the eviction of the Kafka and ZooKeeper pods
+    * The `kubectl drain` command will cordon the worker node and trigger the eviction of the Kafka broker and controller pods running on it.
+      It will evict the Pods that can be evicted and eventually fail because Drain Cleaner denied the eviction of the Kafka broker and controller pods
       ```
       kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
       <worker-node> cordoned
@@ -198,7 +220,7 @@ You can easily test how it works:
     * Strimzi Cluster Operator log should show how it rolls the pods which are being evicted
     * Once the Pods are restarted, you can retry the `kubectl drain` command and it should succeed
       ```
-      kubectl <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
+      kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
       <worker-node> already cordoned
       Warning: ignoring DaemonSet-managed Pods: ...
       <worker-node> drained
