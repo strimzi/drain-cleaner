@@ -10,13 +10,56 @@ To use it:
 * Deploy Kafka using Strimzi.
 
 ```yaml
-apiVersion: kafka.strimzi.io/v1beta2
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: controller
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  replicas: 3
+  roles:
+    - controller
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        deleteClaim: false
+  # Uncomment when using the legacy mode
+  # template:
+  #   podDisruptionBudget:
+  #     maxUnavailable: 0
+---
+apiVersion: kafka.strimzi.io/v1
+kind: KafkaNodePool
+metadata:
+  name: broker
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  replicas: 3
+  roles:
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 100Gi
+        deleteClaim: false
+  # Uncomment when using the legacy mode
+  # template:
+  #   podDisruptionBudget:
+  #     maxUnavailable: 0
+---
+apiVersion: kafka.strimzi.io/v1
 kind: Kafka
 metadata:
   name: my-cluster
 spec:
   kafka:
-    replicas: 3
     listeners:
       - name: plain
         port: 9092
@@ -30,39 +73,18 @@ spec:
       offsets.topic.replication.factor: 3
       transaction.state.log.replication.factor: 3
       transaction.state.log.min.isr: 2
-    storage:
-      type: jbod
-      volumes:
-      - id: 0
-        type: persistent-claim
-        size: 100Gi
-        deleteClaim: false
-    # Uncomment when using the legacy mode
-    # template:
-    #   podDisruptionBudget:
-    #     maxUnavailable: 0
-  zookeeper:
-    replicas: 3
-    storage:
-      type: persistent-claim
-      size: 100Gi
-      deleteClaim: false
-    # Uncomment when using the legacy mode
-    # template:
-    #   podDisruptionBudget:
-    #     maxUnavailable: 0
   entityOperator:
     topicOperator: {}
     userOperator: {}
 ```
 
 * Deploy the Strimzi Drain Cleaner
-* Drain the node with some Kafka or ZooKeeper pods using the [`kubectl drain` command](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/)
+* Drain the node with some Kafka broker or controller pods using the [`kubectl drain` command](https://kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/)
 
 ## How does it work?
 
-Strimzi Drain Cleaner uses Kubernetes Admission Control features and Validating Web-hooks to find out when something tries to evict the Kafka or ZooKeeper pods.
-When it receives the eviction request for one of the Strimzi managed Kafka or ZooKeeper pods, it annotates them with the `strimzi.io/manual-rolling-update` annotation which will tell Strimzi Cluster Operator that this pod needs to be restarted and denies the eviction request.
+Strimzi Drain Cleaner uses Kubernetes Admission Control features and Validating Web-hooks to find out when something tries to evict the Kafka broker or controller pods.
+When it receives the eviction request for one of the Strimzi managed Kafka broker or controller pods, it annotates them with the `strimzi.io/manual-rolling-update` annotation which will tell Strimzi Cluster Operator that this pod needs to be restarted and denies the eviction request.
 Denying the eviction request prevents Kubernetes from restarting the Pod on their own based only on the `PodDisruptionBudget` configuration and leaves it to the Strimzi Cluster operator.
 Strimzi Cluster Operator will roll it in the next reconciliation using its algorithms which make sure the cluster is available while the Pod is restarted.
 Strimzi Cluster Operator will always roll the pods one-by-one regardless of the Pod Disruption Policy settings.
@@ -74,8 +96,8 @@ Different Kubernetes distributions and tools might react differently to the evic
 If the tools used by your Kubernetes cluster do not handle it well, you can switch the Drain Cleaner into a _legacy_ mode where the eviction requests will be allowed.
 To do so, you have to:
 * Edit the Drain Cleaner `Deployment` and set the `STRIMZI_DENY_EVICTION` environment variable to `false`.
-* Configure the `PodDisruptionBudgets` for Kafka and ZooKeeper to have `maxUnavailable` set to `0`.
-  You can configure this in the `Kafka` custom resource in `spec.kafka.template.podDisruptionBudget.maxUnavailable` and `spec.zookeeper.template.podDisruptionBudget.maxUnavailable`.
+* Configure the `PodDisruptionBudgets` for the Kafka brokers and controllers to have `maxUnavailable` set to `0`.
+  You can configure this in the `KafkaNodePool` custom resources in `spec.template.podDisruptionBudget.maxUnavailable`.
 
 Once running in the _legacy_ mode, the Drain Cleaner will still annotate the pods with the `strimzi.io/manual-rolling-update` annotation.
 But it will allow the eviction request.
@@ -87,13 +109,13 @@ You can easily test how it works:
 * Install Strimzi on your cluster
 * Deploy Kafka cluster
 * Install the Drain Cleaner
-* Drain one of the Kubernetes nodes with one of the Kafka or ZooKeeper pods
+* Drain one of the Kubernetes nodes with one of the Kafka broker or controller pods
     ```
     kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s --force
     ```
 * Watch how it works:
-  * The `kubetl drain` command will cordon the worker node and trigger the eviction of the Kafka / ZooKeeper pods running on it.
-    It will evict the Pods that can be evicted and eventually fail because Drain Cleaner denied the eviction of the Kafka and ZooKeeper pods
+  * The `kubectl drain` command will cordon the worker node and trigger the eviction of the Kafka broker and controller pods running on it.
+    It will evict the Pods that can be evicted and eventually fail because Drain Cleaner denied the eviction of the Kafka broker and controller pods
     ```
     kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
     <worker-node> cordoned
@@ -113,7 +135,7 @@ You can easily test how it works:
   * Strimzi Cluster Operator log should show how it rolls the pods which are being evicted
   * Once the Pods are restarted, you can retry the `kubectl drain` command and it should succeed
     ```
-    kubectl <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
+    kubectl drain <worker-node> --delete-emptydir-data --ignore-daemonsets --timeout=6000s
     <worker-node> already cordoned
     Warning: ignoring DaemonSet-managed Pods: ...
     <worker-node> drained
@@ -162,33 +184,54 @@ The command removes all the Kubernetes components associated with the Drain Clea
 
 ## Configuration
 
-The following table lists some available configurable parameters of the Strimzi chart and their default values.
-For a full list of supported options, check the [`values.yaml` file](./values.yaml).
+The following table lists the configurable parameters of the Strimzi Drain Cleaner chart and their default values.
+For the full default configuration, check the [`values.yaml` file](./values.yaml).
 
-| Parameter                 | Description                                                                                                                                                                                                      | Default         |
-|---------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------|
-| `replicaCount`            | Number of replicas of the Drain Cleaner webhook                                                                                                                                                                  | 1               |
-| `image.registry`          | Override default Drain Cleaner image registry                                                                                                                                                                    | `quay.io`       |
-| `image.repository`        | Override default Drain Cleaner image repository                                                                                                                                                                  | `strimzi`       |
-| `image.name`              | Drain Cleaner image name                                                                                                                                                                                         | `drain-cleaner` |
-| `image.tag`               | Override default Drain Cleaner image tag                                                                                                                                                                         | `latest`        |
-| `image.imagePullPolicy`   | Image pull policy for all pods deployed by Drain Cleaner                                                                                                                                                         | `nil`           |
-| `image.imagePullSecrets`  | List of Docker registry pull secrets                                                                                                                                                                             | `[]`            |
-| `resources`               | Configures resources for the Drain Cleaner Pod                                                                                                                                                                   | `[]`            |
-| `tolerations`             | Add tolerations to Drain Cleaner Pod                                                                                                                                                                             | `[]`            |
-| `affinity`                | Add affinities to Drain Cleaner Pod                                                                                                                                                                              | `{}`            |
-| `nodeSelector`            | Add a node selector to Drain Cleaner Pod                                                                                                                                                                         | `{}`            |
-| `deploymentStrategy`      | Adjust the Kubernetes rollout strategy of the Drain Cleaner Deployment                                                                                                                                           | `{}`            |
-| `webhook.faillurePolicy`  | Override default validating webhook failurePolicy                                                                                                                                                                | `Ignore`        |
-| `webhook.labels`          | Additional labels of the ValidatingWebhookConfiguration                                                                                                                                                          | `{}`            |
-| `webhook.annotations`     | Additional annotations of the ValidatingWebhookConfiguration                                                                                                                                                     | `{}`            |
-| `webhook.timeoutSeconds`  | Override default validating webhook timeoutSeconds                                                                                                                                                               | `5`             |
-| `securityContext`         | Set the security context for the Drain Cleaner container                                                                                                                                                         | `{}`            |
-| `podSecurityContext`      | Set the pod security context for the Drain Cleaner pod                                                                                                                                                           | `{}`            |
-| `tmpDirSizeLimit`         | Size limit for the `/tmp` emptyDir volume; empty string = no limit                                                                                                                                               | `5Mi`           |
-| `certManager.create`      | Enables or disables the creation of cert-manager resources (Issuer and Certificate) used to secure the Drain Cleaner webhook.                                                                                    | `true`          |
-| `certManager.duration`    | Configures the duration of the cert-manager certificate requested by the Helm Chart. Value must be in units accepted by [Go time.ParseDuration](https://golang.org/pkg/time/#ParseDuration), e.g. `2160h`.       | `NULL`          |
-| `certManager.renewBefore` | Configures the renewal period of the cert-manager certificate requested by the Helm Chart. Value must be in units accepted by [Go time.ParseDuration](https://golang.org/pkg/time/#ParseDuration), e.g. `2160h`. | `NULL`          |
+| Parameter                          | Description                                                                                                                                                                                                      | Default                                   |
+|------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------|
+| `replicaCount`                     | Number of replicas of the Drain Cleaner webhook                                                                                                                                                                  | `1`                                       |
+| `nameOverride`                     | Override the name of the chart (used in the resource names)                                                                                                                                                      | `""`                                      |
+| `fullnameOverride`                 | Override the fully qualified name of the chart (used in the resource names)                                                                                                                                      | `""`                                      |
+| `image.registry`                   | Override default Drain Cleaner image registry                                                                                                                                                                    | `quay.io`                                 |
+| `image.repository`                 | Override default Drain Cleaner image repository                                                                                                                                                                  | `strimzi`                                 |
+| `image.name`                       | Drain Cleaner image name                                                                                                                                                                                         | `drain-cleaner`                           |
+| `image.tag`                        | Override default Drain Cleaner image tag                                                                                                                                                                         | `latest`                                  |
+| `image.pullPolicy`                 | Image pull policy for the Drain Cleaner Pod                                                                                                                                                                      | `nil`                                     |
+| `image.imagePullSecrets`           | List of Docker registry pull secrets                                                                                                                                                                             | `[]`                                      |
+| `serviceAccount.create`            | Specifies whether a service account should be created                                                                                                                                                            | `true`                                    |
+| `serviceAccount.annotations`       | Annotations to add to the service account                                                                                                                                                                        | `{}`                                      |
+| `serviceAccount.name`              | The name of the service account to use (generated using the fullname template when not set)                                                                                                                      | `""`                                      |
+| `certManager.create`               | Enables or disables the creation of cert-manager resources (Issuer and Certificate) used to secure the Drain Cleaner webhook.                                                                                    | `true`                                    |
+| `certManager.duration`             | Configures the duration of the cert-manager certificate requested by the Helm Chart. Value must be in units accepted by [Go time.ParseDuration](https://golang.org/pkg/time/#ParseDuration), e.g. `2160h`.       | `NULL`                                    |
+| `certManager.renewBefore`          | Configures the renewal period of the cert-manager certificate requested by the Helm Chart. Value must be in units accepted by [Go time.ParseDuration](https://golang.org/pkg/time/#ParseDuration), e.g. `2160h`. | `NULL`                                    |
+| `secret.create`                    | Specifies whether the Secret with the webhook TLS certificates should be created                                                                                                                                 | `false`                                   |
+| `secret.tls_crt`                   | Base64 encoded TLS certificate used by the webhook (when `secret.create` is `true`)                                                                                                                              | `Cg==`                                    |
+| `secret.tls_key`                   | Base64 encoded TLS private key used by the webhook (when `secret.create` is `true`)                                                                                                                              | `Cg==`                                    |
+| `secret.ca_bundle`                 | Base64 encoded CA bundle set in the `ValidatingWebhookConfiguration` (when `secret.create` is `true`)                                                                                                            | `Cg==`                                    |
+| `namespace.create`                 | Specifies whether the namespace should be created by the chart                                                                                                                                                   | `true`                                    |
+| `namespace.name`                   | The namespace where the Drain Cleaner is installed                                                                                                                                                               | `strimzi-drain-cleaner`                   |
+| `namespace.extraLabels`            | Extra labels to add to the namespace                                                                                                                                                                             | `{}`                                      |
+| `podDisruptionBudget.create`       | Specifies whether a pod disruption budget should be created for the Drain Cleaner Pod                                                                                                                            | `false`                                   |
+| `podDisruptionBudget.minAvailable` | The minimum number of available Drain Cleaner Pods for the pod disruption budget                                                                                                                                 | `1`                                       |
+| `args`                             | Override the container arguments of the Drain Cleaner container                                                                                                                                                  | `[/opt/strimzi/bin/drain_cleaner_run.sh]` |
+| `resources`                        | Configures resources for the Drain Cleaner Pod                                                                                                                                                                   | `{}`                                      |
+| `tmpDirSizeLimit`                  | Size limit for the `/tmp` emptyDir volume; empty string = no limit                                                                                                                                               | `5Mi`                                     |
+| `securityContext`                  | Set the security context for the Drain Cleaner container                                                                                                                                                         | `{}`                                      |
+| `enableServiceLinks`               | Configures the `enableServiceLinks` option of the Drain Cleaner Pod                                                                                                                                              | `NULL`                                    |
+| `podSecurityContext`               | Set the pod security context for the Drain Cleaner Pod                                                                                                                                                           | `{}`                                      |
+| `deploymentLabels`                 | Additional custom labels for the Drain Cleaner Deployment                                                                                                                                                        | `{}`                                      |
+| `podLabels`                        | Additional custom labels for the Drain Cleaner Pod                                                                                                                                                               | `{}`                                      |
+| `podAnnotations`                   | Additional custom annotations for the Drain Cleaner Pod                                                                                                                                                          | `{}`                                      |
+| `nodeSelector`                     | Add a node selector to Drain Cleaner Pod                                                                                                                                                                         | `{}`                                      |
+| `tolerations`                      | Add tolerations to Drain Cleaner Pod                                                                                                                                                                             | `[]`                                      |
+| `topologySpreadConstraints`        | Add topology spread constraints to Drain Cleaner Pod                                                                                                                                                             | `[]`                                      |
+| `affinity`                         | Add affinities to Drain Cleaner Pod                                                                                                                                                                              | `{}`                                      |
+| `deploymentStrategy`               | Adjust the Kubernetes rollout strategy of the Drain Cleaner Deployment                                                                                                                                           | `{}`                                      |
+| `env`                              | Environment variables passed to the Drain Cleaner container to configure its behavior                                                                                                                            | See [`values.yaml`](./values.yaml)        |
+| `webhook.failurePolicy`            | Override default validating webhook failurePolicy                                                                                                                                                                | `Ignore`                                  |
+| `webhook.labels`                   | Additional labels of the ValidatingWebhookConfiguration                                                                                                                                                          | `{}`                                      |
+| `webhook.annotations`              | Additional annotations of the ValidatingWebhookConfiguration                                                                                                                                                     | `{}`                                      |
+| `webhook.timeoutSeconds`           | Override default validating webhook timeoutSeconds                                                                                                                                                               | `5`                                       |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm install`. For example,
 
