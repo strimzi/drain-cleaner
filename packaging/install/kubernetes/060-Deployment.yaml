@@ -66,4 +66,5 @@ spec:
           secret:
             secretName: strimzi-drain-cleaner
         - name: tmp-dir
-          emptyDir: {}
+          emptyDir:
+            sizeLimit: "5Mi"
