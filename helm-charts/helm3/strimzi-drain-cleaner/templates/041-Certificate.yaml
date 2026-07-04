@@ -17,4 +17,10 @@ spec:
     group: cert-manager.io
     kind: Issuer
     name: strimzi-drain-cleaner
+  {{- if kindIs "string" .Values.certManager.duration }}
+  duration: {{ .Values.certManager.duration }}
+  {{- end }}
+  {{- if kindIs "string" .Values.certManager.renewBefore }}
+  renewBefore: {{ .Values.certManager.renewBefore }}
+  {{- end }}
 {{- end }}

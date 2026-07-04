@@ -34,6 +34,9 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
       {{- end }}
+      {{- if kindIs "bool" .Values.enableServiceLinks }}
+      enableServiceLinks: {{ .Values.enableServiceLinks }}
+      {{- end }}
       containers:
         - name: strimzi-drain-cleaner
           image: {{ .Values.image.registry }}/{{ .Values.image.repository}}/{{ .Values.image.name }}:{{ .Values.image.tag }}
@@ -104,7 +107,12 @@ spec:
           secret:
             secretName: strimzi-drain-cleaner
         - name: tmp-dir
+          {{- if .Values.tmpDirSizeLimit }}
+          emptyDir:
+            sizeLimit: {{ .Values.tmpDirSizeLimit | quote }}
+          {{- else }}
           emptyDir: {}
+          {{- end }}
   {{- with .Values.deploymentStrategy }}
   strategy:
     {{- toYaml . | trim | nindent 4 }}
