@@ -247,8 +247,17 @@ Strimzi is licensed under the [Apache License](./LICENSE), Version 2.0
 
 ## Container signatures
 
-From the 1.0.0 release, Strimzi Drain Cleaner containers are signed using the [`cosign` tool](https://github.com/sigstore/cosign).
-Strimzi currently does not use the keyless signing and the transparency log.
+Strimzi Drain Cleaner container images are signed using the [`cosign` tool](https://github.com/sigstore/cosign).
+From the 1.5.0 release, the container images are signed using the keyless signing.
+To verify the container signature, you can run the following command:
+
+```
+cosign verify --certificate-identity-regexp='https://github.com/strimzi/.*' \
+    --certificate-oidc-issuer='https://token.actions.githubusercontent.com' \
+    quay.io/strimzi/drain-cleaner:latest
+```
+
+From 1.0.0 until the 1.4.0 release, the container images were signed using a custom key.
 To verify the container, you can copy the following public key into a file:
 
 ```
