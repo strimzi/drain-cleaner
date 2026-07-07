@@ -107,7 +107,12 @@ spec:
           secret:
             secretName: strimzi-drain-cleaner
         - name: tmp-dir
+          {{- if .Values.tmpDirSizeLimit }}
+          emptyDir:
+            sizeLimit: {{ .Values.tmpDirSizeLimit | quote }}
+          {{- else }}
           emptyDir: {}
+          {{- end }}
   {{- with .Values.deploymentStrategy }}
   strategy:
     {{- toYaml . | trim | nindent 4 }}
