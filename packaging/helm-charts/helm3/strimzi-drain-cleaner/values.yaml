@@ -67,9 +67,17 @@ resources: {}
 # `tmpDirSizeLimit` option of the strimzi-kafka-operator Helm chart.
 tmpDirSizeLimit: 5Mi
 
-securityContext: {}
-  # Specifies optional security context, depending your environment prerequisites.
-  # If you want to specify security contexts add them below and remove curly braces above.
+securityContext:
+  # Specifies container security context. Defaults to a security context that matches the Restricted Kubernetes
+  # Pod Security Standard (https://kubernetes.io/docs/concepts/security/pod-security-standards/).
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+  seccompProfile:
+    type: RuntimeDefault
 
 enableServiceLinks: NULL
 
