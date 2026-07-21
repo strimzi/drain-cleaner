@@ -28,6 +28,7 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
+      automountServiceAccountToken: false
       {{- if .Values.image.imagePullSecrets }}
       imagePullSecrets:
         {{- with .Values.image.imagePullSecrets }}
@@ -61,6 +62,9 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           volumeMounts:
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: kube-api-access
+              readOnly: true
             - name: webhook-certificates
               mountPath: "/etc/webhook-certificates"
               readOnly: true
@@ -103,6 +107,23 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       volumes:
+        - name: kube-api-access
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  path: token
+              - configMap:
+                  name: kube-root-ca.crt
+                  items:
+                    - key: ca.crt
+                      path: ca.crt
+              - downwardAPI:
+                  items:
+                    - path: namespace
+                      fieldRef:
+                        apiVersion: v1
+                        fieldPath: metadata.namespace
         - name: webhook-certificates
           secret:
             secretName: strimzi-drain-cleaner
