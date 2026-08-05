@@ -83,6 +83,9 @@ jobs:
       - prepare-release-artifacts
     if: ${{ startsWith(github.ref, 'refs/heads/release-') && inputs.useSuffix == true }}
     runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.push-containers.outputs.images }}
+      sbomsArtifact: ${{ steps.push-containers.outputs.sbomsArtifact }}
     permissions:
       contents: read
       packages: write
@@ -96,7 +99,9 @@ jobs:
         with:
           version: "1.20.0"
 
-      - uses: strimzi/github-actions/.github/actions/build/push-containers@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
+      - name: Push containers using push-containers action
+        id: push-containers
+        uses: strimzi/github-actions/.github/actions/build/push-containers@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
           containerRegistry: "quay.io"
@@ -106,6 +111,19 @@ jobs:
           registryPassword: ${{ secrets.QUAY_PASS }}
           artifactSuffix: "drain-cleaner"
           buildRunId: ${{ inputs.sourceBuildRunId }}
+
+  attest-with-suffix:
+    name: Attestation (with suffix)
+    needs:
+      - push-containers-with-suffix
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: strimzi/github-actions/.github/workflows/reusable-attest.yml@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
+    with:
+      containerImages: ${{ needs.push-containers-with-suffix.outputs.images }}
+      sbomsArtifact: ${{ needs.push-containers-with-suffix.outputs.sbomsArtifact }}
 
   push-containers:
     name: Push Containers without suffix (${{ inputs.releaseVersion }})
@@ -119,6 +137,9 @@ jobs:
         needs.push-containers-with-suffix.result == 'skipped')
       }}
     runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.push-containers.outputs.images }}
+      sbomsArtifact: ${{ steps.push-containers.outputs.sbomsArtifact }}
     permissions:
       contents: read
       packages: write
@@ -132,7 +153,9 @@ jobs:
         with:
           version: "1.20.0"
 
-      - uses: strimzi/github-actions/.github/actions/build/push-containers@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
+      - name: Push containers using push-containers action
+        id: push-containers
+        uses: strimzi/github-actions/.github/actions/build/push-containers@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
           containerRegistry: "quay.io"
@@ -153,6 +176,8 @@ jobs:
         needs.push-containers.result == 'success'
       }}
     runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.publish-helm-chart.outputs.image }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -162,6 +187,7 @@ jobs:
           helmVersion: "v3.16.0"
 
       - name: Publish Helm charts using publish-helm action
+        id: publish-helm-chart
         uses: strimzi/github-actions/.github/actions/build/publish-helm-chart@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
         with:
           registryUser: ${{ secrets.QUAY_HELM_USER }}
@@ -171,3 +197,26 @@ jobs:
           helmChartName: "strimzi-drain-cleaner-helm-3-chart"
           releaseVersion: ${{ inputs.releaseVersion }}
           artifactSuffix: "drain-cleaner"
+
+  attest:
+    name: Attestation
+    needs:
+      - push-containers
+      - prepare-release-artifacts
+      - publish-helm-chart
+    if: |-
+      ${{ always() && startsWith(github.ref, 'refs/heads/release-') &&
+        needs.push-containers.result == 'success'
+      }}
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: strimzi/github-actions/.github/workflows/reusable-attest.yml@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
+    with:
+      containerImages: ${{ needs.push-containers.outputs.images }}
+      sbomsArtifact: ${{ needs.push-containers.outputs.sbomsArtifact }}
+      artifactSuffix: "drain-cleaner"
+      releaseVersion: ${{ inputs.releaseVersion }}
+      helmChartName: "strimzi-drain-cleaner-helm-3-chart"
+      helmChartImage: ${{ needs.publish-helm-chart.outputs.image }}
