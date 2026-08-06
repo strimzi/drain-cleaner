@@ -108,6 +108,9 @@ jobs:
       - run-systemtests
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.push-containers.outputs.images }}
+      sbomsArtifact: ${{ steps.push-containers.outputs.sbomsArtifact }}
     permissions:
       contents: read
       id-token: write
@@ -120,7 +123,9 @@ jobs:
         with:
           version: "1.20.0"
 
-      - uses: strimzi/github-actions/.github/actions/build/push-containers@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
+      - name: Push containers using push-containers action
+        id: push-containers
+        uses: strimzi/github-actions/.github/actions/build/push-containers@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
         with:
           architectures: "amd64,arm64,ppc64le,s390x"
           containerRegistry: "quay.io"
@@ -129,3 +134,16 @@ jobs:
           registryUser: ${{ secrets.QUAY_USER }}
           registryPassword: ${{ secrets.QUAY_PASS }}
           artifactSuffix: "drain-cleaner"
+
+  attest:
+    name: Attestation
+    needs:
+      - push-containers
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    uses: strimzi/github-actions/.github/workflows/reusable-attest.yml@52b17c19f3687e37b47c9c64696b96f28f53625b # v2.3
+    with:
+      containerImages: ${{ needs.push-containers.outputs.images }}
+      sbomsArtifact: ${{ needs.push-containers.outputs.sbomsArtifact }}
