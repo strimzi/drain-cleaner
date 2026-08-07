@@ -91,5 +91,6 @@ jobs:
         with:
           imageFile: drain-cleaner-container-amd64.tar.gz
           image: drain-cleaner
+          scanName: "drain-cleaner-container"
           fossaTest: "true"
           branch: ${{ inputs.releaseVersion || github.ref_name }}
