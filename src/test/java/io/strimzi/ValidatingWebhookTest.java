@@ -99,6 +99,28 @@ public class ValidatingWebhookTest {
     }
 
     @Test
+    public void testEvictionDeniedWithCustomStatusCode() {
+        final Map<String, String> labels = Map.of(
+                "strimzi.io/kind", "Kafka",
+                "strimzi.io/name", "my-cluster-kafka"
+        );
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
+        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, 429);
+        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
+
+        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
+        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(429));
+        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
+        verify(podResource, times(1)).get();
+        verify(podResource, times(1)).patch((Pod) any());
+        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
+    }
+
+    @Test
     public void testEvictionCorrectUid() {
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
