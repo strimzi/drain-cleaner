@@ -32,6 +32,8 @@ spec:
               value: "true"
             - name: STRIMZI_DENY_EVICTION
               value: "true"
+            - name: STRIMZI_DENY_EVICTION_STATUS_CODE
+              value: "500"
             - name: STRIMZI_CERTIFICATE_WATCH_ENABLED
               value: "true"
             - name: STRIMZI_CERTIFICATE_WATCH_NAMESPACE
