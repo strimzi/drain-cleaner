@@ -48,6 +48,9 @@ public class ValidatingWebhook {
     @ConfigProperty(name = "strimzi.deny.eviction")
     boolean denyEviction;
 
+    @ConfigProperty(name = "strimzi.deny.eviction.status.code", defaultValue = "500")
+    int denyEvictionStatusCode;
+
     @ConfigProperty(name = "strimzi.drain.namespaces")
     Optional<String> drainNamespaces;
 
@@ -63,10 +66,16 @@ public class ValidatingWebhook {
 
     // Parametrized constructor => used in tests
     public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction) {
+        this(client, drainKafka, drainZooKeeper, denyEviction, 500);
+    }
+
+    // Parametrized constructor with configurable deny eviction status code => used in tests
+    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction, int denyEvictionStatusCode) {
         this.client = client;
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
+        this.denyEvictionStatusCode = denyEvictionStatusCode;
         this.drainNamespaces = Optional.empty();
         initializeNamespaces();
     }
@@ -77,6 +86,7 @@ public class ValidatingWebhook {
         this.drainZooKeeper = drainZooKeeper;
         this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
+        this.denyEvictionStatusCode = 500;
         this.drainNamespaces = Optional.ofNullable(drainNamespaces);
         initializeNamespaces();
     }
@@ -211,7 +221,7 @@ public class ValidatingWebhook {
                 .withNewResponse()
                     .withUid(request.getUid())
                     .withAllowed(false)
-                    .withStatus(new StatusBuilder().withCode(500).withMessage("The pod will be rolled by the Strimzi Cluster Operator").build())
+                    .withStatus(new StatusBuilder().withCode(denyEvictionStatusCode).withMessage("The pod will be rolled by the Strimzi Cluster Operator").build())
                 .endResponse()
                 .build();
     }
