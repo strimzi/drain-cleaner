@@ -20,6 +20,10 @@ helm_lint:
 	# Linting Helm Chart
 	$(HELM_CLI) lint --debug $(CHART_PATH)
 
+helm_unittest:
+	# Running Helm Chart unit tests
+	$(HELM_CLI) unittest $(CHART_PATH)
+
 helm_certmanager_template:
 	# Generating rendered template files to: $(CHART_RENDERED_TEMPLATES_TMP)
 	mkdir -p $(CHART_RENDERED_TEMPLATES_TMP)

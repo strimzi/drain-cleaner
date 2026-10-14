@@ -36,6 +36,9 @@ jobs:
         with:
           javaVersion: ${{ matrix.java.version }}
 
+      - name: Install Helm
+        uses: strimzi/github-actions/.github/actions/dependencies/install-helm@8a88edc07beb03fbd99d6d72f59c86d7d7aadda4 # v3.0
+
       - name: Build binaries using build-binaries action
         uses: strimzi/github-actions/.github/actions/build/build-binaries@8a88edc07beb03fbd99d6d72f59c86d7d7aadda4 # v3.0
         with:

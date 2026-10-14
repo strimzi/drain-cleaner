@@ -56,6 +56,9 @@ helm_pkg:
 helm_install: packaging/helm-charts/helm3
 	$(MAKE) -C packaging/helm-charts/helm3 $(MAKECMDGOALS)
 
+helm_unittest:
+	$(MAKE) -C packaging/helm-charts/helm3 helm_unittest
+
 .PHONY: all
 all: java_package helm_install docker_build docker_push
 

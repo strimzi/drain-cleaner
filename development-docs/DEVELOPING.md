@@ -34,6 +34,20 @@ You can pass additional arguments to the Maven build by setting the `MVN_ARGS` e
 MVN_ARGS=-B make java_package
 ```
 
+### Running the Helm Chart unit tests
+
+The Helm Chart has unit tests written using the [`helm-unittest`](https://github.com/helm-unittest/helm-unittest) plugin.
+The tests are in the `packaging/helm-charts/helm3/strimzi-drain-cleaner/tests` directory.
+To install the plugin, run:
+```shell script
+helm plugin install https://github.com/helm-unittest/helm-unittest.git
+```
+
+To run the tests, use the following command:
+```shell script
+make helm_unittest
+```
+
 ### Building a container image manually
 
 After you have the native executable, you can build the container manually:
