@@ -125,6 +125,13 @@ env:
       fieldRef:
         fieldPath: metadata.name
 
+# List of namespaces in which the Drain Cleaner should handle the eviction requests. When set, the Drain Cleaner
+# handles only the Strimzi pods in these namespaces and the chart creates Role and RoleBinding in each of them
+# instead of the ClusterRole and ClusterRoleBinding. When empty (default), all namespaces are handled.
+drainNamespaces: []
+  # - my-kafka-namespace
+  # - my-other-kafka-namespace
+
 webhook:
   failurePolicy: Ignore
   labels: {}
