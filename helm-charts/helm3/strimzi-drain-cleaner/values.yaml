@@ -9,7 +9,7 @@ image:
   registry: quay.io
   repository: strimzi
   name: drain-cleaner
-  tag: 1.7.0
+  tag: 1.8.0
   pullPolicy: ""
   imagePullSecrets: []
 
@@ -112,6 +112,8 @@ env:
     value: "true"
   - name: STRIMZI_DENY_EVICTION
     value: "true"
+  - name: STRIMZI_DENY_EVICTION_STATUS_CODE
+    value: "500"
   - name: STRIMZI_CERTIFICATE_WATCH_ENABLED
     value: "true"
   - name: STRIMZI_CERTIFICATE_WATCH_NAMESPACE
@@ -122,6 +124,13 @@ env:
     valueFrom:
       fieldRef:
         fieldPath: metadata.name
+
+# List of namespaces in which the Drain Cleaner should handle the eviction requests. When set, the Drain Cleaner
+# handles only the Strimzi pods in these namespaces and the chart creates Role and RoleBinding in each of them
+# instead of the ClusterRole and ClusterRoleBinding. When empty (default), all namespaces are handled.
+drainNamespaces: []
+  # - my-kafka-namespace
+  # - my-other-kafka-namespace
 
 webhook:
   failurePolicy: Ignore

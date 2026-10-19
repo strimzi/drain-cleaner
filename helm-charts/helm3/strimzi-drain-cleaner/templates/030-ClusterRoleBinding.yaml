@@ -1,16 +1,22 @@
 {{- if .Values.serviceAccount.create -}}
+{{- range (.Values.drainNamespaces | default (list "")) }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: {{ if . }}RoleBinding{{ else }}ClusterRoleBinding{{ end }}
 metadata:
-  name: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
+  name: {{ include "strimzi-drain-cleaner.serviceAccountName" $ }}{{ if . }}-drain{{ end }}
   labels:
-    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+    {{- include "strimzi-drain-cleaner.labels" $ | nindent 4 }}
+  {{- if . }}
+  namespace: {{ . }}
+  {{- end }}
 subjects:
   - kind: ServiceAccount
-    name: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
-    namespace: {{ default .Release.Namespace .Values.namespace.name }}
+    name: {{ include "strimzi-drain-cleaner.serviceAccountName" $ }}
+    namespace: {{ default $.Release.Namespace $.Values.namespace.name }}
 roleRef:
-  kind: ClusterRole
-  name: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
+  kind: {{ if . }}Role{{ else }}ClusterRole{{ end }}
+  name: {{ include "strimzi-drain-cleaner.serviceAccountName" $ }}{{ if . }}-drain{{ end }}
   apiGroup: rbac.authorization.k8s.io
+{{- end }}
 {{- end }}

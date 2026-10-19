@@ -1,10 +1,15 @@
 {{- if .Values.serviceAccount.create -}}
+{{- range (.Values.drainNamespaces | default (list "")) }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: {{ if . }}Role{{ else }}ClusterRole{{ end }}
 metadata:
-  name: {{ include "strimzi-drain-cleaner.serviceAccountName" . }}
+  name: {{ include "strimzi-drain-cleaner.serviceAccountName" $ }}{{ if . }}-drain{{ end }}
   labels:
-    {{- include "strimzi-drain-cleaner.labels" . | nindent 4 }}
+    {{- include "strimzi-drain-cleaner.labels" $ | nindent 4 }}
+  {{- if . }}
+  namespace: {{ . }}
+  {{- end }}
 rules:
   # Drain Cleaner needs to be able to get the Kafka or ZooKeeper pods that are being evicted and patch them with the
   # annotation which tells Strimzi Cluster Operator to roll the Pod
@@ -15,4 +20,5 @@ rules:
     verbs:
       - get
       - patch
+{{- end }}
 {{- end }}
