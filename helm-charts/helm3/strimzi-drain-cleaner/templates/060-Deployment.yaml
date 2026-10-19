@@ -49,9 +49,15 @@ spec:
               name: http
             - containerPort: 8443
               name: https
-          {{- with .Values.env }}
+          {{- if or .Values.env .Values.drainNamespaces }}
           env:
+            {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.drainNamespaces }}
+            - name: STRIMZI_DRAIN_NAMESPACES
+              value: {{ join "," . | quote }}
+            {{- end }}
           {{- end }}
           {{- with .Values.args }}
           args:

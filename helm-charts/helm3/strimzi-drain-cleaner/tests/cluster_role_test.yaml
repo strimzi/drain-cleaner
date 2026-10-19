@@ -1,0 +1,95 @@
+suite: strimzi drain cleaner cluster role
+release:
+  name: strimzi-drain-cleaner
+  namespace: strimzi-drain-cleaner
+templates:
+  - 020-ClusterRole.yaml
+tests:
+  - it: should render the ClusterRole by default
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: metadata.name
+          value: strimzi-drain-cleaner
+      - notExists:
+          path: metadata.namespace
+      - equal:
+          path: rules
+          value:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+                - patch
+
+  - it: should use the custom service account name
+    set:
+      serviceAccount.name: my-drain-cleaner
+    asserts:
+      - isKind:
+          of: ClusterRole
+      - equal:
+          path: metadata.name
+          value: my-drain-cleaner
+
+  - it: should not render anything when the service account is not created
+    set:
+      serviceAccount.create: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should render the ClusterRole when the drain namespaces list is empty
+    set:
+      drainNamespaces: []
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ClusterRole
+
+  - it: should render a Role in each drain namespace instead of the ClusterRole
+    set:
+      drainNamespaces:
+        - ns-a
+        - ns-b
+    asserts:
+      - hasDocuments:
+          count: 2
+      - isKind:
+          of: Role
+      - equal:
+          path: metadata.name
+          value: strimzi-drain-cleaner-drain
+      - equal:
+          path: metadata.namespace
+          value: ns-a
+        documentIndex: 0
+      - equal:
+          path: metadata.namespace
+          value: ns-b
+        documentIndex: 1
+      - equal:
+          path: rules
+          value:
+            - apiGroups:
+                - ""
+              resources:
+                - pods
+              verbs:
+                - get
+                - patch
+
+  - it: should not render anything for drain namespaces when the service account is not created
+    set:
+      serviceAccount.create: false
+      drainNamespaces:
+        - ns-a
+    asserts:
+      - hasDocuments:
+          count: 0

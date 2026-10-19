@@ -1,0 +1,49 @@
+suite: strimzi drain cleaner deployment
+release:
+  name: strimzi-drain-cleaner
+  namespace: strimzi-drain-cleaner
+templates:
+  - 060-Deployment.yaml
+tests:
+  - it: should not set the drain namespaces by default
+    asserts:
+      - isKind:
+          of: Deployment
+      - notContains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: STRIMZI_DRAIN_NAMESPACES
+          any: true
+
+  - it: should set the drain namespaces environment variable
+    set:
+      drainNamespaces:
+        - ns-a
+        - ns-b
+    asserts:
+      - isKind:
+          of: Deployment
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: STRIMZI_DRAIN_NAMESPACES
+            value: ns-a,ns-b
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: STRIMZI_DRAIN_KAFKA
+            value: "true"
+
+  - it: should set the drain namespaces environment variable when no other environment variables are set
+    set:
+      env: null
+      drainNamespaces:
+        - ns-a
+    asserts:
+      - isKind:
+          of: Deployment
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: STRIMZI_DRAIN_NAMESPACES
+              value: ns-a
