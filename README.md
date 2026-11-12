@@ -193,6 +193,22 @@ env:
 
 > **Note**: When configuring the timeout values, it is important to update the `timeoutSeconds` in the `ValidatingWebhookConfiguration` to be larger than the sum of your connection and request timeout values to ensure the API server doesn't timeout the webhook before Drain Cleaner completes its Kubernetes API operations.
 
+## Logging
+
+Drain Cleaner writes plain text logs to standard output.
+JSON logs that follow the [Elastic Common Schema (ECS)](https://www.elastic.co/docs/reference/ecs) can be enabled without rebuilding the image:
+
+| Environment Variable                    | Description                                                                                          | Default |
+|-----------------------------------------|------------------------------------------------------------------------------------------------------|---------|
+| `QUARKUS_LOG_CONSOLE_JSON_ENABLED`      | Enables JSON console logging. When enabled, log records use the format set by `QUARKUS_LOG_CONSOLE_JSON_LOG_FORMAT`. | `false` |
+| `QUARKUS_LOG_CONSOLE_JSON_LOG_FORMAT`   | JSON log format. Supported values are `ecs`, `default`, and `gcp`.                                   | `ecs`   |
+
+```yaml
+env:
+  - name: QUARKUS_LOG_CONSOLE_JSON_ENABLED
+    value: "true"
+```
+
 ## See it in action
 
 You can easily test how it works:
