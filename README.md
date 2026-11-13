@@ -196,17 +196,22 @@ env:
 ## Logging
 
 Drain Cleaner writes plain text logs to standard output.
-JSON logs that follow the [Elastic Common Schema (ECS)](https://www.elastic.co/docs/reference/ecs) can be enabled without rebuilding the image:
+JSON console logs can be enabled without rebuilding the image.
+The format stays on the Quarkus default unless `QUARKUS_LOG_CONSOLE_JSON_LOG_FORMAT` is set.
 
-| Environment Variable                    | Description                                                                                          | Default |
-|-----------------------------------------|------------------------------------------------------------------------------------------------------|---------|
-| `QUARKUS_LOG_CONSOLE_JSON_ENABLED`      | Enables JSON console logging. When enabled, log records use the format set by `QUARKUS_LOG_CONSOLE_JSON_LOG_FORMAT`. | `false` |
-| `QUARKUS_LOG_CONSOLE_JSON_LOG_FORMAT`   | JSON log format. Supported values are `ecs`, `default`, and `gcp`.                                   | `ecs`   |
+| Environment Variable                  | Description                                                         | Default   |
+|---------------------------------------|---------------------------------------------------------------------|-----------|
+| `QUARKUS_LOG_CONSOLE_JSON_ENABLED`    | Enables JSON console logging.                                       | `false`   |
+| `QUARKUS_LOG_CONSOLE_JSON_LOG_FORMAT` | JSON log format. Supported values are `default`, `ecs`, and `gcp`.  | `default` |
+
+To use the [Elastic Common Schema (ECS)](https://www.elastic.co/docs/reference/ecs) format, set both variables:
 
 ```yaml
 env:
   - name: QUARKUS_LOG_CONSOLE_JSON_ENABLED
     value: "true"
+  - name: QUARKUS_LOG_CONSOLE_JSON_LOG_FORMAT
+    value: "ecs"
 ```
 
 ## See it in action
