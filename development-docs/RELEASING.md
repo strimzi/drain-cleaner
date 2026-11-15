@@ -61,6 +61,9 @@ After the release pipeline is finished, the release has to be created:
 
 * Tag the right commit from the release branch with the release name (e.g. `git tag 1.2.0`) and push it to GitHub
 * On GitHub, create the release and attach the ZIP / TAR.GZ artifacts from the release pipeline to it
+  * Also attach the attestation bundle `release-<version>.intoto.jsonl` and the `sbom.tar.gz` archive from the `release-drain-cleaner-<version>.tar` artifact of the release workflow.
+    The `attest` job adds these files to that artifact. Attach them **without changing the file names**:
+    the `.intoto.jsonl` name is what the OpenSSF Scorecard `Signed-Releases` check looks for, and the README tells users to verify the release archives with `gh attestation verify <archive> --bundle release-<version>.intoto.jsonl`.
 * Add the Helm Chart to the index file
     * Checkout the Strimzi website and go to the `charts/` directory
     * Copy the Helm Chart archive to this directory

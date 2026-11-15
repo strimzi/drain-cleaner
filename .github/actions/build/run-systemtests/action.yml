@@ -19,14 +19,16 @@ runs:
   using: "composite"
   steps:
     - name: Setup Java
-      uses: strimzi/github-actions/.github/actions/dependencies/setup-java@8a88edc07beb03fbd99d6d72f59c86d7d7aadda4 # v3.0
+      uses: strimzi/github-actions/.github/actions/dependencies/setup-java@bb4758d4afacd9c0ff8f426395bbbece41fd142a # v4.0
       with:
         javaVersion: "21"
 
     - name: Setup Kind
-      uses: strimzi/github-actions/.github/actions/dependencies/setup-kind@8a88edc07beb03fbd99d6d72f59c86d7d7aadda4 # v3.0
+      uses: strimzi/github-actions/.github/actions/dependencies/setup-kind@bb4758d4afacd9c0ff8f426395bbbece41fd142a # v4.0
       with:
         architecture: ${{ inputs.architecture }}
+        kindVersion: "0.33.0"
+        cloudProviderVersion: "0.12.0"
 
     - name: Download container artifact
       uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
