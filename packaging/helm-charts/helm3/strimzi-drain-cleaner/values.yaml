@@ -133,6 +133,8 @@ drainNamespaces: []
   # - my-other-kafka-namespace
 
 webhook:
+  # Name of the cluster-scoped ValidatingWebhookConfiguration. Use a unique name for each installation.
+  name: strimzi-drain-cleaner
   failurePolicy: Ignore
   labels: {}
   annotations: {}
