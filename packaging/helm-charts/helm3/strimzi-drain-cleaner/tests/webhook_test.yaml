@@ -1,0 +1,42 @@
+suite: strimzi drain cleaner validating webhook configuration
+release:
+  name: strimzi-drain-cleaner
+  namespace: strimzi-drain-cleaner
+templates:
+  - 070-ValidatingWebhookConfiguration.yaml
+tests:
+  - it: should render the ValidatingWebhookConfiguration with the default name
+    asserts:
+      - hasDocuments:
+          count: 1
+      - isKind:
+          of: ValidatingWebhookConfiguration
+      - equal:
+          path: metadata.name
+          value: strimzi-drain-cleaner
+      - notExists:
+          path: metadata.namespace
+
+  - it: should use the custom webhook name without changing the service or certificate references
+    set:
+      webhook.name: my-drain-cleaner-webhook
+      namespace.name: my-namespace
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-drain-cleaner-webhook
+      - notExists:
+          path: metadata.namespace
+      - equal:
+          path: webhooks[0].name
+          value: strimzi-drain-cleaner.strimzi.io
+      - equal:
+          path: webhooks[0].clientConfig.service
+          value:
+            namespace: my-namespace
+            name: strimzi-drain-cleaner
+            path: /drainer
+            port: 443
+      - equal:
+          path: metadata.annotations["cert-manager.io/inject-ca-from"]
+          value: my-namespace/strimzi-drain-cleaner
