@@ -9,6 +9,10 @@
 Strimzi Drain Cleaner is a utility which helps with moving the [Apache Kafka®](https://kafka.apache.org) pods deployed by [Strimzi](https://strimzi.io/) from Kubernetes nodes which are being drained.
 It is useful if you want the Strimzi operator to move the pods instead of Kubernetes itself.
 The advantage of this approach is that the Strimzi operator makes sure that no partition replicas become under-replicated during the node draining.
+
+> **Compatibility:** Drain Cleaner versions newer than 1.8 support only KRaft-based Kafka clusters.
+> For ZooKeeper-based clusters (Strimzi 0.45 and older), use Drain Cleaner 1.8 or older.
+
 To use it:
 
 * Configure your Kafka topics to have replication factor higher than 1 and make sure the `min.insync.replicas` is always set to a number lower than the replication factor.
@@ -111,8 +115,9 @@ The eviction request will be ignored by Kubernetes because of the PodDisruptionB
 
 ## Deployment
 
-By default, the Drain Cleaner drains Kafka broker and controller pods.
-If you want to disable the draining of the Kafka pods, you can edit the `Deployment` by setting the `STRIMZI_DRAIN_KAFKA` environment variable to `false`.
+The Drain Cleaner handles eviction requests for Kafka broker and controller pods in the namespaces it watches.
+
+> **Upgrade note:** `STRIMZI_DRAIN_KAFKA` has been removed. If you previously set it to `false`, Drain Cleaner will resume handling Kafka pod evictions after you upgrade.
 
 You can also limit the namespaces that the Drain Cleaner watches by setting the `STRIMZI_DRAIN_NAMESPACES` environment variable to a comma-separated list of namespace names.
 When this variable is set to a non-empty value, the Drain Cleaner will only process eviction requests for Strimzi pods in the specified namespaces.

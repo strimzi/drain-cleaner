@@ -14,7 +14,7 @@ You can also run them it manually by evicting pods or by posting admission revie
   ```
 * Use `curl` to trigger eviction _(change pod name and namespace as needed)_:
   ```
-  curl -v -H 'Content-type: application/json' http://localhost:8001/api/v1/namespaces/myproject/pods/my-cluster-zookeeper-1/eviction -d @src/test/resources/example-eviction-request.json
+  curl -v -H 'Content-type: application/json' http://localhost:8001/api/v1/namespaces/myproject/pods/my-cluster-broker-1/eviction -d @src/test/resources/example-eviction-request.json
   ```
 
 ### Posting admission review requests

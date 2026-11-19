@@ -66,7 +66,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, false);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, false);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -86,7 +86,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -108,7 +108,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, 429);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, 429);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -130,7 +130,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels, "POD-UID"));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -157,7 +157,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels, "WRONG-UID"));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -191,7 +191,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(admissionReview);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -216,7 +216,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -242,7 +242,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -265,7 +265,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -280,7 +280,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, null));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -300,7 +300,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -320,7 +320,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -330,119 +330,35 @@ public class ValidatingWebhookTest {
         verify(podResource, times(1)).get();
         verify(podResource, times(1)).patch((Pod) any());
         assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
-    }
-
-    @Test
-    public void testCorrectLabelCorrectZooKeeperValue() {
-        final Map<String, String> labels = Map.of(
-                "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
-        );
-
-        when(podResource.get()).thenReturn(mockedPod(false, labels));
-        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
-        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
-
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
-
-        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
-        assertThat(reviewResponse.getResponse().getStatus().getCode(), is(500));
-        assertThat(reviewResponse.getResponse().getStatus().getMessage(), is("The pod will be rolled by the Strimzi Cluster Operator"));
-        verify(podResource, times(1)).get();
-        verify(podResource, times(1)).patch((Pod) any());
-        assertThat(podCaptor.getValue().getMetadata().getAnnotations().get("strimzi.io/manual-rolling-update"), is("true"));
-    }
-
-    @Test
-    public void testCorrectKafkaLabelWithDisabledKafkaDraining() {
-        final Map<String, String> labels = Map.of(
-                "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-kafka"
-        );
-
-        when(podResource.get()).thenReturn(mockedPod(false, labels));
-        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
-        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
-
-        ValidatingWebhook webhook = new ValidatingWebhook(client, false, true, true);
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
-
-        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(1)).get();
-        verify(podResource, never()).patch((Pod) any());
-    }
-
-    @Test
-    public void testCorrectZooKeeperLabelWithDisabledZooKeeperDraining() {
-        final Map<String, String> labels = Map.of(
-                "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
-        );
-        when(podResource.get()).thenReturn(mockedPod(false, labels));
-        ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
-        when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
-
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, false, true);
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
-
-        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(1)).get();
-        verify(podResource, never()).patch((Pod) any());
     }
 
     @Test
     public void testDryRun() {
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
+                "strimzi.io/name", "my-cluster-kafka"
         );
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        when(podResource.get()).thenReturn(mockedPod(false, labels));
+
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(true, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
+        assertThat(reviewResponse.getResponse().getAllowed(), is(false));
         verify(podResource, times(1)).get();
-        verify(podResource, never()).patch((Pod) any());
-    }
-
-    @Test
-    public void testKafkaAndZooKeeperFilters() {
-        ValidatingWebhook webhook = new ValidatingWebhook(client, false, false, true);
-        final Map<String, String> labels = Map.of(
-                "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
-        );
-        // Test it for Kafka
-        AdmissionReview reviewResponse = webhook.webhook(reviewRequest(true, labels));
-
-        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(1)).get();
-        verify(podResource, never()).patch((Pod) any());
-
-        // Test it for ZooKeeper
-        reviewResponse = webhook.webhook(reviewRequest(true, labels));
-
-        assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
-        assertThat(reviewResponse.getResponse().getAllowed(), is(true));
-        verify(podResource, times(2)).get();
         verify(podResource, never()).patch((Pod) any());
     }
 
     @Test
     public void testNoKindLabel() {
         final Map<String, String> labels = Map.of(
-                "strimzi.io/name", "my-cluster-zookeeper"
+                "strimzi.io/name", "my-cluster-kafka"
         );
         when(podResource.get()).thenReturn(mockedPod(false, labels));
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -456,9 +372,9 @@ public class ValidatingWebhookTest {
         when(podResource.get()).thenReturn(null);
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
+                "strimzi.io/name", "my-cluster-kafka"
         );
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -471,13 +387,13 @@ public class ValidatingWebhookTest {
     public void testAlreadyHasRuLabel() {
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
+                "strimzi.io/name", "my-cluster-kafka"
         );
         when(podResource.get()).thenReturn(mockedPod(true, labels));
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -493,7 +409,7 @@ public class ValidatingWebhookTest {
         String podName = "my-cluster-kafka-1";
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
+                "strimzi.io/name", "my-cluster-kafka"
         );
         AdmissionRequest admissionRequest = new AdmissionRequest();
         admissionRequest.setObject(new EvictionBuilder()
@@ -513,7 +429,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(request);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -530,7 +446,7 @@ public class ValidatingWebhookTest {
         String podName = "my-cluster-kafka-1";
         final Map<String, String> labels = Map.of(
                 "strimzi.io/kind", "Kafka",
-                "strimzi.io/name", "my-cluster-zookeeper"
+                "strimzi.io/name", "my-cluster-kafka"
         );
         AdmissionRequest admissionRequest = new AdmissionRequest();
         admissionRequest.setObject(new EvictionBuilder()
@@ -549,7 +465,7 @@ public class ValidatingWebhookTest {
         ArgumentCaptor<Pod> podCaptor = ArgumentCaptor.forClass(Pod.class);
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true);
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true);
         AdmissionReview reviewResponse = webhook.webhook(request);
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -617,7 +533,7 @@ public class ValidatingWebhookTest {
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
         // Empty drainNamespaces should watch all namespaces
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "");
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, "");
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -640,7 +556,7 @@ public class ValidatingWebhookTest {
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
         // my-namespace is in the drain namespaces list
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "my-namespace,other-namespace");
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, "my-namespace,other-namespace");
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -684,7 +600,7 @@ public class ValidatingWebhookTest {
                 .build();
 
         // unwatched-namespace is not in the drain namespaces list
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "my-namespace,other-namespace");
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, "my-namespace,other-namespace");
         AdmissionReview reviewResponse = webhook.webhook(request);
 
         // Should allow the eviction since namespace is not watched
@@ -706,7 +622,7 @@ public class ValidatingWebhookTest {
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
         // Test with spaces around namespace names
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, " my-namespace , other-namespace ");
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, " my-namespace , other-namespace ");
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
@@ -729,7 +645,7 @@ public class ValidatingWebhookTest {
         when(podResource.patch(podCaptor.capture())).thenReturn(new Pod());
 
         // "*" should watch all namespaces (same as empty string)
-        ValidatingWebhook webhook = new ValidatingWebhook(client, true, true, true, "*");
+        ValidatingWebhook webhook = new ValidatingWebhook(client, true, "*");
         AdmissionReview reviewResponse = webhook.webhook(reviewRequest(false, labels));
 
         assertThat(reviewResponse.getResponse().getUid(), is("SOME-UUID"));
