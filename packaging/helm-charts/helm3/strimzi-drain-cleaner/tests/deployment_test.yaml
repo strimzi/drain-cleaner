@@ -44,7 +44,7 @@ tests:
       - contains:
           path: spec.template.spec.containers[0].env
           content:
-            name: STRIMZI_DRAIN_KAFKA
+            name: STRIMZI_DENY_EVICTION
             value: "true"
 
   - it: should set the drain namespaces environment variable when no other environment variables are set

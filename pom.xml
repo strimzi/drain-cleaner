@@ -15,8 +15,7 @@
   </licenses>
 
   <name>Strimzi Drain Cleaner</name>
-  <description>Utility to help with draining nodes running Strimzi-managed Apache Kafka
-    or Apache ZooKeeper pods.</description>
+  <description>Utility to help with draining nodes running Strimzi-managed Apache Kafka pods.</description>
   <url>https://strimzi.io/</url>
 
   <scm>
