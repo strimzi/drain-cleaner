@@ -35,15 +35,8 @@ import java.util.stream.Collectors;
 public class ValidatingWebhook {
     private static final Logger LOG = LoggerFactory.getLogger(ValidatingWebhook.class);
 
-    private static final Pattern ZOOKEEPER_PATTERN = Pattern.compile(".+-zookeeper");
     private static final Pattern KAFKA_PATTERN = Pattern.compile(".+-kafka");
     private static final String STRIMZI_LABEL_KEY = "strimzi.io/name";
-
-    @ConfigProperty(name = "strimzi.drain.kafka")
-    boolean drainKafka;
-
-    @ConfigProperty(name = "strimzi.drain.zookeeper")
-    boolean drainZooKeeper;
 
     @ConfigProperty(name = "strimzi.deny.eviction")
     boolean denyEviction;
@@ -65,15 +58,13 @@ public class ValidatingWebhook {
     }
 
     // Parametrized constructor => used in tests
-    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction) {
-        this(client, drainKafka, drainZooKeeper, denyEviction, 500);
+    public ValidatingWebhook(KubernetesClient client, boolean denyEviction) {
+        this(client, denyEviction, 500);
     }
 
     // Parametrized constructor with configurable deny eviction status code => used in tests
-    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction, int denyEvictionStatusCode) {
+    public ValidatingWebhook(KubernetesClient client, boolean denyEviction, int denyEvictionStatusCode) {
         this.client = client;
-        this.drainZooKeeper = drainZooKeeper;
-        this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
         this.denyEvictionStatusCode = denyEvictionStatusCode;
         this.drainNamespaces = Optional.empty();
@@ -81,10 +72,8 @@ public class ValidatingWebhook {
     }
 
     // Parametrized constructor for tests with namespace filtering
-    public ValidatingWebhook(KubernetesClient client, boolean drainKafka, boolean drainZooKeeper, boolean denyEviction, String drainNamespaces) {
+    public ValidatingWebhook(KubernetesClient client, boolean denyEviction, String drainNamespaces) {
         this.client = client;
-        this.drainZooKeeper = drainZooKeeper;
-        this.drainKafka = drainKafka;
         this.denyEviction = denyEviction;
         this.denyEvictionStatusCode = 500;
         this.drainNamespaces = Optional.ofNullable(drainNamespaces);
@@ -128,8 +117,7 @@ public class ValidatingWebhook {
     private boolean matchingLabel(Map<String, String> labels) {
         if (labels != null && labels.get(STRIMZI_LABEL_KEY) != null
                 && "Kafka".equals(labels.get("strimzi.io/kind"))) {
-            return drainKafka && KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches()
-                        || drainZooKeeper && ZOOKEEPER_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches();
+            return KAFKA_PATTERN.matcher(labels.get(STRIMZI_LABEL_KEY)).matches();
         } else {
             return false;
         }

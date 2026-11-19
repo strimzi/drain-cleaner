@@ -2,7 +2,7 @@
   "apiVersion": "policy/v1beta1",
   "kind": "Eviction",
   "metadata": {
-    "name": "my-cluster-zookeeper-1",
+    "name": "my-cluster-broker-1",
     "namespace": "myproject"
   }
 }
