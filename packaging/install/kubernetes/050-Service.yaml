@@ -7,10 +7,6 @@ metadata:
   namespace: strimzi-drain-cleaner
 spec:
   ports:
-    - port: 80
-      name: http
-      protocol: TCP
-      targetPort: 8080
     - port: 443
       name: https
       protocol: TCP

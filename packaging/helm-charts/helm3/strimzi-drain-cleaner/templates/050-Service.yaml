@@ -7,10 +7,6 @@ metadata:
   namespace: {{ default .Release.Namespace .Values.namespace.name }}
 spec:
   ports:
-    - port: 80
-      name: http
-      protocol: TCP
-      targetPort: 8080
     - port: 443
       name: https
       protocol: TCP
