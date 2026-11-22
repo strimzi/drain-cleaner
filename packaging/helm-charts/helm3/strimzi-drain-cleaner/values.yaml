@@ -127,7 +127,9 @@ env:
 
 # List of namespaces in which the Drain Cleaner should handle the eviction requests. When set, the Drain Cleaner
 # handles only the Strimzi pods in these namespaces and the chart creates Role and RoleBinding in each of them
-# instead of the ClusterRole and ClusterRoleBinding. When empty (default), all namespaces are handled.
+# instead of the ClusterRole and ClusterRoleBinding. The webhook also only matches these namespaces unless
+# webhook.namespaceSelector is configured explicitly.
+# When empty (default), this list does not restrict which namespaces are handled.
 drainNamespaces: []
   # - my-kafka-namespace
   # - my-other-kafka-namespace
@@ -135,6 +137,8 @@ drainNamespaces: []
 webhook:
   # Name of the cluster-scoped ValidatingWebhookConfiguration. Use a unique name for each installation.
   name: strimzi-drain-cleaner
+  # Optional label selector that overrides the selector derived from drainNamespaces. An explicit {} matches all namespaces.
+  # namespaceSelector: {}
   failurePolicy: Ignore
   labels: {}
   annotations: {}
