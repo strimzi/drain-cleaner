@@ -16,6 +16,8 @@ tests:
           value: strimzi-drain-cleaner
       - notExists:
           path: metadata.namespace
+      - notExists:
+          path: webhooks[0].namespaceSelector
 
   - it: should use the custom webhook name without changing the service or certificate references
     set:
@@ -40,3 +42,58 @@ tests:
       - equal:
           path: metadata.annotations["cert-manager.io/inject-ca-from"]
           value: my-namespace/strimzi-drain-cleaner
+
+  - it: should limit webhook calls to the configured drain namespaces
+    set:
+      drainNamespaces:
+        - ns-a
+        - ns-b
+    asserts:
+      - equal:
+          path: webhooks[0].namespaceSelector
+          value:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values: [ns-a, ns-b]
+
+  - it: should preserve a custom namespace selector when no drain namespaces are configured
+    set:
+      drainNamespaces: []
+      webhook.namespaceSelector:
+        matchLabels:
+          team: kafka
+    asserts:
+      - equal:
+          path: webhooks[0].namespaceSelector
+          value:
+            matchLabels:
+              team: kafka
+
+  - it: should use only the custom namespace selector when drain namespaces are configured
+    set:
+      drainNamespaces: [ns-a]
+      webhook.namespaceSelector:
+        matchLabels:
+          team: kafka
+        matchExpressions:
+          - key: environment
+            operator: Exists
+    asserts:
+      - equal:
+          path: webhooks[0].namespaceSelector
+          value:
+            matchLabels:
+              team: kafka
+            matchExpressions:
+              - key: environment
+                operator: Exists
+
+  - it: should use an explicitly empty selector instead of the drain namespace list
+    set:
+      drainNamespaces: [ns-a]
+      webhook.namespaceSelector: {}
+    asserts:
+      - equal:
+          path: webhooks[0].namespaceSelector
+          value: {}

@@ -118,7 +118,9 @@ You can also limit the namespaces that the Drain Cleaner watches by setting the 
 When this variable is set to a non-empty value, the Drain Cleaner will only process eviction requests for Strimzi pods in the specified namespaces.
 When empty (the default), the Drain Cleaner will watch all namespaces.
 When installing the Drain Cleaner using the Helm Chart, you can use the `drainNamespaces` option to configure the list of namespaces.
-The Helm Chart will then set the `STRIMZI_DRAIN_NAMESPACES` environment variable and create a `Role` and `RoleBinding` in each of the namespaces instead of the `ClusterRole` and `ClusterRoleBinding`.
+For a non-empty list, the Helm Chart sets `STRIMZI_DRAIN_NAMESPACES`, creates a `Role` and `RoleBinding` in each listed namespace instead of a `ClusterRole` and `ClusterRoleBinding`, and by default limits webhook calls to those namespaces.
+If you set `webhook.namespaceSelector`, the API server uses that selector instead, even if it matches namespaces outside `drainNamespaces`.
+An explicit `webhook.namespaceSelector: {}` matches all namespaces. Neither override changes the namespaces Drain Cleaner handles or its RBAC.
 
 When the eviction request is denied, the Drain Cleaner returns an HTTP error status code to Kubernetes. By default, it returns `500`.
 If a different status code works better with the tooling used by your Kubernetes cluster, you can edit the `Deployment` by setting the `STRIMZI_DENY_EVICTION_STATUS_CODE` environment variable.

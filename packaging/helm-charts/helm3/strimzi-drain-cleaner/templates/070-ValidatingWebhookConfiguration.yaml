@@ -34,9 +34,16 @@ webhooks:
       caBundle: {{ .Values.secret.ca_bundle }}
       {{- end }}
     admissionReviewVersions: ["v1"]
-    {{- with (.Values.webhook).namespaceSelector }}
+    {{- if ne .Values.webhook.namespaceSelector nil }}
     namespaceSelector:
-      {{- toYaml . | nindent 6 }}
+      {{- toYaml .Values.webhook.namespaceSelector | nindent 6 }}
+    {{- else if .Values.drainNamespaces }}
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: In
+          values:
+            {{- toYaml .Values.drainNamespaces | nindent 12 }}
     {{- end }}
     sideEffects: None
     failurePolicy: {{ .Values.webhook.failurePolicy }}
