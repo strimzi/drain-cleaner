@@ -154,6 +154,11 @@ Follow the instructions in the `./install/kubernetes` directory to generate and 
 On Kubernetes, you can also use Helm to install Strimzi Drain Cleaner using our Helm Chart.
 The Helm Chart can be used to install it both with Cert Manager support and with your own certificates.
 
+### Network access
+
+In production, the `/drainer` webhook is served only over HTTPS on port `8443`.
+`/health` is available on both that listener and the separate HTTP management listener on port `8080`.
+
 ### Certificate renewals
 
 By default, the Drain Cleaner deployment is watching the Kubernetes secret with TLS certificates for changes such as certificate renewals.
