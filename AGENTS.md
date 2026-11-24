@@ -26,7 +26,7 @@ Single-module Maven project using Quarkus.
 
 | Path | Purpose |
 |------|---------|
-| `src/main/java/io/strimzi/` | `ValidatingWebhook` handles eviction requests; `KubernetesClientProducer` configures the Kubernetes client; `CertificateWatch` and `HealthCheck` handle certificate monitoring and health checks |
+| `src/main/java/io/strimzi/` | `ValidatingWebhook` handles eviction requests; `KubernetesClientProducer` configures the Kubernetes client; `CertificateWatch` monitors TLS certificates |
 | `src/main/resources/` | Quarkus application configuration and native-image reflection configuration |
 | `src/test/java/io/strimzi/` | Unit tests, cluster-backed tests in `systemtest/`, and shared test helpers in `utils/` |
 | `src/test/resources/` | Test fixtures, including sample admission and eviction requests |

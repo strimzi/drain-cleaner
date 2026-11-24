@@ -40,11 +40,13 @@ class ListenerRoutingIT {
     URI application;
 
     @Test
-    void healthIsAvailableOnBothListeners() {
-        given().when().get(management.resolve("/health"))
-                .then().statusCode(200).contentType(JSON).body("status", is("RUNNING"));
-        given().relaxedHTTPSValidation().when().get(application.resolve("/health"))
-                .then().statusCode(200).contentType(JSON).body("status", is("RUNNING"));
+    void healthProbesAreAvailableOnlyOnTheManagementListener() {
+        for (String path : new String[] {"/q/health/live", "/q/health/ready"}) {
+            given().when().get(management.resolve(path))
+                    .then().statusCode(200).contentType(JSON).body("status", is("UP"));
+            given().relaxedHTTPSValidation().when().get(application.resolve(path))
+                    .then().statusCode(404);
+        }
     }
 
     @Test

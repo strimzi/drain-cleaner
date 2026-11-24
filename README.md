@@ -157,7 +157,7 @@ The Helm Chart can be used to install it both with Cert Manager support and with
 ### Network access
 
 In production, the `/drainer` webhook is served only over HTTPS on port `8443`.
-`/health` is available on both that listener and the separate HTTP management listener on port `8080`.
+Quarkus SmallRye Health serves the Kubernetes liveness (`/q/health/live`) and readiness (`/q/health/ready`) probes on the separate HTTP management listener on port `8080`.
 
 ### Certificate renewals
 

@@ -5,6 +5,19 @@ release:
 templates:
   - 060-Deployment.yaml
 tests:
+  - it: should probe the SmallRye Health endpoints on the HTTP management port
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet
+          value:
+            path: /q/health/live
+            port: http
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet
+          value:
+            path: /q/health/ready
+            port: http
+
   - it: should not set the drain namespaces by default
     asserts:
       - isKind:
