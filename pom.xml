@@ -302,6 +302,12 @@
               </systemPropertyVariables>
             </configuration>
           </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skipITs>true</skipITs>
+            </configuration>
+          </plugin>
         </plugins>
       </build>
     </profile>
