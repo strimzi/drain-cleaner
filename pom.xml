@@ -54,11 +54,11 @@
     <!-- Quarkus -->
     <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
     <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    <quarkus.platform.version>3.40.1</quarkus.platform.version>
+    <quarkus.platform.version>3.40.1.2</quarkus.platform.version>
 
     <!-- Other versions - used in Test -->
-    <log4j.version>2.25.4</log4j.version>
-    <bouncycastle.version>1.85</bouncycastle.version>
+    <log4j.version>2.25.5</log4j.version>
+    <bouncycastle.version>1.87</bouncycastle.version>
     <skodjob.kubetest4j.version>1.1.0</skodjob.kubetest4j.version>
   </properties>
   <dependencyManagement>
@@ -88,6 +88,10 @@
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-rest-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-health</artifactId>
     </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
@@ -213,6 +217,24 @@
           </systemPropertyVariables>
         </configuration>
       </plugin>
+      <plugin>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <version>${surefire-plugin.version}</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <systemPropertyVariables>
+            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+            <maven.home>${maven.home}</maven.home>
+          </systemPropertyVariables>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
   <profiles>
@@ -227,25 +249,11 @@
         <plugins>
           <plugin>
             <artifactId>maven-failsafe-plugin</artifactId>
-            <version>${surefire-plugin.version}</version>
-            <executions>
-              <execution>
-                <goals>
-                  <goal>integration-test</goal>
-                  <goal>verify</goal>
-                </goals>
-                <configuration>
-                  <excludes>
-                    <exclude>**/*ST.java</exclude>
-                  </excludes>
-                  <systemPropertyVariables>
-                    <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-                    <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                    <maven.home>${maven.home}</maven.home>
-                  </systemPropertyVariables>
-                </configuration>
-              </execution>
-            </executions>
+            <configuration>
+              <systemPropertyVariables>
+                <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+              </systemPropertyVariables>
+            </configuration>
           </plugin>
         </plugins>
       </build>
@@ -296,6 +304,12 @@
                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                 <maven.home>${maven.home}</maven.home>
               </systemPropertyVariables>
+            </configuration>
+          </plugin>
+          <plugin>
+            <artifactId>maven-failsafe-plugin</artifactId>
+            <configuration>
+              <skipITs>true</skipITs>
             </configuration>
           </plugin>
         </plugins>

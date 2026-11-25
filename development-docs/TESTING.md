@@ -25,6 +25,13 @@ You can also run them it manually by evicting pods or by posting admission revie
   curl -v -H 'Content-type: application/json' http://localhost:8080/drainer -d @src/test/resources/example-admission-review.json
   ```
 
+## Integration Tests
+
+Run `mvn verify` to test the packaged Drain Cleaner with its production Quarkus configuration.
+The listener routing test uses temporary TLS certificates and dynamically assigned local ports.
+It verifies that `/q/health/live` and `/q/health/ready` are served only on the HTTP management listener, while `/drainer` is served only on the HTTPS application listener.
+No Kubernetes cluster is required.
+
 ## System Tests
 
 If you want to ensure that everything works, you can run system tests using:
