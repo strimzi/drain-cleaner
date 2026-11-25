@@ -26,10 +26,6 @@ spec:
             - containerPort: 8443
               name: https
           env:
-            - name: STRIMZI_DRAIN_KAFKA
-              value: "true"
-            - name: STRIMZI_DRAIN_ZOOKEEPER
-              value: "true"
             - name: STRIMZI_DENY_EVICTION
               value: "true"
             - name: STRIMZI_DENY_EVICTION_STATUS_CODE

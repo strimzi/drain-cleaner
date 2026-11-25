@@ -11,7 +11,7 @@ metadata:
   namespace: {{ . }}
   {{- end }}
 rules:
-  # Drain Cleaner needs to be able to get the Kafka or ZooKeeper pods that are being evicted and patch them with the
+  # Drain Cleaner needs to be able to get the Kafka pods that are being evicted and patch them with the
   # annotation which tells Strimzi Cluster Operator to roll the Pod
   - apiGroups:
       - ""
